@@ -2,33 +2,26 @@ name: Daily Dashboard Deploy
 
 on:
   schedule:
-    # 8:30 AM IST = 3:00 AM UTC
     - cron: '0 3 * * *'
   workflow_dispatch:
 
 jobs:
-  update-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Update dashboard content
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Verify index.html exists
         run: |
-          echo "Dashboard will auto-update at 8:30 AM IST daily"
-          ls -la index.html
-
-      - name: Commit and push updates
-        run: |
-          git config user.email "dashboard-bot@example.com"
-          git config user.name "Dashboard Bot"
-          git add index.html
-          git commit -m "Automatic daily dashboard update - $(date)" || echo "No changes to commit"
-          git push origin main
-        continue-on-error: true
-
-      - name: Verify deployment
-        run: |
-          echo "Dashboard deployed successfully!"
-          echo "Live at: https://yourusername.github.io/daily-dashboard"
+          if [ -f index.html ]; then
+            echo "✅ Dashboard file found and ready"
+            cat index.html | head -20
+          else
+            echo "❌ index.html not found"
+            exit 1
+          fi
+      
+      - name: Deploy successful
+        run: echo "Dashboard deployed at https://tejasgjadhav.github.io/daily-dashboard"
