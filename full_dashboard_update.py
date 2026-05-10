@@ -33,6 +33,9 @@ class EnhancedDashboardUpdater:
     def __init__(self):
         self.html_file = 'index.html'
         self.timestamp = datetime.now(IST).strftime('%Y-%m-%d %H:%M IST')
+        self.today = datetime.now(IST)
+        self.last_trading_day = self._get_last_trading_day()
+        self.next_trading_day = self._get_next_trading_day()
         self.updates_made = False
         self.news_items = []
         self.anil_views = []
@@ -42,6 +45,60 @@ class EnhancedDashboardUpdater:
     def log(self, message):
         """Print timestamped log messages"""
         print(f"[{datetime.now(IST).strftime('%H:%M:%S')}] {message}")
+
+    # ==================== TRADING CALENDAR LOGIC ====================
+
+    def _is_trading_day(self, date):
+        """Check if date is a trading day (Mon-Fri, excluding holidays)"""
+        # NSE holidays in 2026 (simplified - add full list as needed)
+        nse_holidays_2026 = [
+            (1, 26),   # Republic Day
+            (3, 8),    # Maha Shivaratri
+            (3, 29),   # Holi
+            (3, 30),   # Good Friday
+            (4, 17),   # Ram Navami
+            (4, 21),   # Mahavir Jayanti
+            (5, 23),   # Buddha Purnima
+            (6, 20),   # Eid ul-Adha
+            (7, 17),   # Muharram
+            (8, 15),   # Independence Day
+            (8, 19),   # Janmashtami
+            (9, 16),   # Milad un-Nabi
+            (10, 2),   # Gandhi Jayanti
+            (10, 12),  # Dussehra
+            (10, 24),  # Diwali
+            (11, 1),   # Diwali (Govardhan)
+            (11, 15),  # Guru Nanak Jayanti
+            (12, 25),  # Christmas
+        ]
+
+        # Check if weekend (Sat=5, Sun=6)
+        if date.weekday() >= 5:
+            return False
+
+        # Check if holiday
+        if (date.month, date.day) in nse_holidays_2026:
+            return False
+
+        return True
+
+    def _get_last_trading_day(self):
+        """Get the last trading day (go back from today)"""
+        check_date = self.today
+        for _ in range(10):  # Check last 10 days
+            check_date = check_date.replace(day=check_date.day - 1) if check_date.day > 1 else check_date.replace(month=check_date.month - 1, day=28)
+            if self._is_trading_day(check_date):
+                return check_date
+        return self.today.replace(day=self.today.day - 1)
+
+    def _get_next_trading_day(self):
+        """Get the next trading day (go forward from today)"""
+        check_date = self.today
+        for _ in range(10):  # Check next 10 days
+            check_date = check_date.replace(day=check_date.day + 1) if check_date.day < 28 else check_date.replace(month=check_date.month + 1, day=1)
+            if self._is_trading_day(check_date):
+                return check_date
+        return self.today.replace(day=self.today.day + 1)
 
     # ==================== MARKET DATA FETCHING ====================
 
@@ -413,37 +470,46 @@ class EnhancedDashboardUpdater:
         return any(keyword in event_name.lower() for keyword in relevant_keywords)
 
     def _set_default_upcoming_events(self, current_date):
-        """Set default forward-looking events for today/tomorrow"""
+        """Set default forward-looking events for next trading day + beyond"""
+        next_day = self.next_trading_day
+        day_after = next_day.replace(day=next_day.day + 1) if next_day.day < 28 else next_day.replace(month=next_day.month + 1, day=1)
+
+        # Find day after next trading day
+        for _ in range(5):
+            if self._is_trading_day(day_after):
+                break
+            day_after = day_after.replace(day=day_after.day + 1) if day_after.day < 28 else day_after.replace(month=day_after.month + 1, day=1)
+
         # Generate events for next 2 trading days
         self.upcoming_events = [
             {
-                'time': '08:30 IST',
+                'time': f'{next_day.strftime("%A %B %d")} - 08:30 IST',
                 'title': 'RBI Monetary Policy Committee - Interest Rate Decision',
                 'source': 'Reserve Bank of India',
                 'impact': 'CRITICAL'
             },
             {
-                'time': '09:00 IST',
+                'time': f'{next_day.strftime("%A %B %d")} - 09:00 IST',
                 'title': 'India Economic Data Release - Industrial Production (IIP)',
                 'source': 'Ministry of Statistics',
                 'impact': 'HIGH'
             },
             {
-                'time': '10:30 IST',
+                'time': f'{next_day.strftime("%A %B %d")} - 10:30 IST',
                 'title': 'BEL Q4 FY25 Results & Board Meeting',
-                'source': 'BSE/NSE - Your Holding ₹127K',
+                'source': 'BSE/NSE - Your Holding ₹127K (3.92% of Portfolio)',
                 'impact': 'CRITICAL'
             },
             {
-                'time': '14:00 IST',
+                'time': f'{next_day.strftime("%A %B %d")} - 14:00 IST',
                 'title': 'HDFC Bank Board Meeting & Dividend Announcement',
-                'source': 'BSE/NSE - Your Holding ₹58.5K',
+                'source': 'BSE/NSE - Your Holding ₹58.5K (1.81% of Portfolio)',
                 'impact': 'HIGH'
             },
             {
-                'time': 'Tomorrow 09:00 IST',
+                'time': f'{day_after.strftime("%A %B %d")} - 09:00 IST',
                 'title': 'Data Patterns Q4 Results Announcement',
-                'source': 'BSE/NSE - Your Holding ₹106K',
+                'source': 'BSE/NSE - Your Holding ₹106K (3.28% of Portfolio)',
                 'impact': 'CRITICAL'
             }
         ]
@@ -524,15 +590,24 @@ class EnhancedDashboardUpdater:
         return html
 
     def update_gift_nifty(self, html):
-        """Update GIFT Nifty data"""
+        """Update GIFT Nifty data with next trading day info"""
         self.log("🎯 Updating GIFT Nifty...")
         gift_value = self.market_data.get('gift_nifty', '24,280')
+        next_trading_date = self.next_trading_day.strftime('%A %B %d, %Y')
 
+        # Update the GIFT Nifty main display
         html = re.sub(
             r'(<div style="font-size: 36px; font-weight: 700; margin-bottom: 5px;">)[\d,]+(<\/div>)',
             f'\\g<1>{gift_value}\\g<2>',
             html,
             count=1
+        )
+
+        # Update GIFT Nifty date context if present
+        html = re.sub(
+            r'LIVE \d+:\d+ AM IST \w+ \d+, \d+',
+            f'LIVE NEXT TRADING DAY: {next_trading_date}',
+            html
         )
 
         return html
@@ -696,12 +771,18 @@ class EnhancedDashboardUpdater:
         """Update daily summary box with comprehensive status"""
         self.log("📝 Updating summary...")
 
-        summary = f"""⚡ TODAY'S INTELLIGENCE SUMMARY - {datetime.now(IST).strftime('%B %d, %Y')} ✅<br/>
-                <strong>MARKET STATUS:</strong> NSE/BSE Live | GIFT Nifty: {self.market_data.get('gift_nifty', '24,280')} | Nifty 50: {self.market_data.get('nifty_50', '24,176')}<br/>
+        # Determine if market is open or closed
+        is_market_open = self._is_trading_day(self.today)
+        market_status = "NSE/BSE OPEN" if is_market_open else f"CLOSED (Next: {self.next_trading_day.strftime('%A, %B %d')})"
+
+        last_trading_date = self.last_trading_day.strftime('%B %d, %Y')
+
+        summary = f"""⚡ TODAY'S INTELLIGENCE SUMMARY - {self.today.strftime('%B %d, %Y')} (Market: {market_status}) ✅<br/>
+                <strong>MARKET STATUS:</strong> {market_status} | Last Trading Day: {last_trading_date}<br/>
+                <strong>LAST TRADING DATA:</strong> Nifty 50: {self.market_data.get('nifty_50', '24,176')} | SENSEX: {self.market_data.get('sensex', '77,328')}<br/>
                 <strong>KEY METRICS:</strong> VIX: {self.market_data.get('vix', '16.84')} | USD/INR: {self.market_data.get('usd_inr', '95.43')} (Record Low)<br/>
                 <strong>PORTFOLIO:</strong> BEL & Data Patterns STRONG (Defence Cycle) | HDFC Stable | ACCUMULATE on dips<br/>
-                <strong>MARKET FLOWS:</strong> FII -$21B YTD | DII +$33B YTD | DIIs Supporting Quality<br/>
-                <strong>NEXT TRIGGER:</strong> RBI Policy Review | FII Capital Flows | Geopolitical Developments"""
+                <strong>NEXT TRADING DAY EVENTS:</strong> {self.next_trading_day.strftime('%A %B %d')} - RBI Policy | Earnings Announcements"""
 
         html = re.sub(
             r'<div class="summary-text">[^<]*</div>',
