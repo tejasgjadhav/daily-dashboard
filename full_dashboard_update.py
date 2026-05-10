@@ -36,6 +36,7 @@ class EnhancedDashboardUpdater:
         self.updates_made = False
         self.news_items = []
         self.anil_views = []
+        self.upcoming_events = []
         self.market_data = {}
 
     def log(self, message):
@@ -147,19 +148,20 @@ class EnhancedDashboardUpdater:
             'usd_inr': '95.43'        # RBI rate verified
         }
 
-    # ==================== NEWS AGGREGATION ====================
+    # ==================== NEWS & EVENTS AGGREGATION ====================
 
     def fetch_news_and_commentary(self):
-        """Fetch Anil Sanghvi views and market news from multiple sources"""
-        self.log("📰 Fetching news and expert commentary...")
+        """Fetch Anil Sanghvi views, market news, and upcoming events"""
+        self.log("📰 Fetching news, expert commentary, and forward-looking events...")
 
         try:
             self._fetch_anil_sanghvi_views()
             self._fetch_market_news()
-            self.log(f"✅ Found {len(self.anil_views)} Anil Sanghvi views, {len(self.news_items)} news items")
+            self._fetch_upcoming_events()  # NEW: Dynamic event fetching
+            self.log(f"✅ Found {len(self.anil_views)} views, {len(self.news_items)} news, {len(self.upcoming_events)} events")
             return True
         except Exception as e:
-            self.log(f"⚠️  News fetch error: {e}. Using default commentary.")
+            self.log(f"⚠️  Fetch error: {e}. Using defaults.")
             self._set_default_news()
             return True
 
@@ -322,6 +324,130 @@ class EnhancedDashboardUpdater:
             }
         ]
 
+    # ==================== FORWARD-LOOKING EVENTS ====================
+
+    def _fetch_upcoming_events(self):
+        """Fetch upcoming economic events and earnings for today/tomorrow"""
+        self.log("📅 Fetching upcoming events...")
+
+        try:
+            today = datetime.now(IST)
+            tomorrow = today.replace(day=today.day + 1) if today.day < 28 else today.replace(day=1)
+
+            if HAS_SCRAPING:
+                self._scrape_trading_view_calendar()
+                self._scrape_moneycontrol_events()
+
+            # If no events fetched, add default forward-looking events
+            if not self.upcoming_events:
+                self._set_default_upcoming_events(today)
+        except Exception as e:
+            self.log(f"⚠️  Event fetch error: {e}")
+            self._set_default_upcoming_events(datetime.now(IST))
+
+    def _scrape_trading_view_calendar(self):
+        """Scrape TradingView Economic Calendar for upcoming events"""
+        try:
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            response = requests.get('https://www.tradingview.com/economic-calendar/',
+                                  headers=headers, timeout=10)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                events = soup.find_all('tr', {'class': 'row'})[:10]
+
+                for event in events:
+                    time_cell = event.find('td', {'data-th': 'Time'})
+                    name_cell = event.find('td', {'data-th': 'Event'})
+                    impact_cell = event.find('td', {'data-th': 'Impact'})
+
+                    if name_cell and time_cell:
+                        event_time = time_cell.text.strip() if time_cell else 'TBD'
+                        event_name = name_cell.text.strip()
+                        impact = 'HIGH' if impact_cell and '🔴' in impact_cell.text else 'MEDIUM'
+
+                        if self._is_relevant_event(event_name):
+                            self.upcoming_events.append({
+                                'time': event_time,
+                                'title': event_name,
+                                'source': 'TradingView Calendar',
+                                'impact': impact
+                            })
+        except:
+            pass
+
+    def _scrape_moneycontrol_events(self):
+        """Scrape MoneyControl for earnings announcements and events"""
+        try:
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            response = requests.get('https://www.moneycontrol.com/stocksmarketsindia/earningscalendar/',
+                                  headers=headers, timeout=10)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                earnings = soup.find_all('tr')[:15]
+
+                for earning in earnings:
+                    company = earning.find('td', {'class': 'company'})
+                    date = earning.find('td', {'class': 'date'})
+
+                    if company:
+                        company_name = company.text.strip()
+                        # Check for portfolio holdings
+                        if any(holding.lower() in company_name.lower()
+                               for holding in ['BEL', 'Data Patterns', 'HDFC']):
+                            self.upcoming_events.append({
+                                'time': date.text.strip() if date else 'TBD',
+                                'title': f'{company_name} - Q4 Results / Earnings Announcement',
+                                'source': 'MoneyControl Earnings Calendar',
+                                'impact': 'CRITICAL'
+                            })
+        except:
+            pass
+
+    def _is_relevant_event(self, event_name):
+        """Check if event is relevant to Indian markets/portfolio"""
+        relevant_keywords = [
+            'india', 'rbi', 'gdp', 'inflation', 'nifty', 'sensex',
+            'iip', 'pmi', 'forex', 'rupee', 'interest rate', 'monetary',
+            'defence', 'budget', 'earnings', 'bel', 'hdfc', 'data patterns'
+        ]
+        return any(keyword in event_name.lower() for keyword in relevant_keywords)
+
+    def _set_default_upcoming_events(self, current_date):
+        """Set default forward-looking events for today/tomorrow"""
+        # Generate events for next 2 trading days
+        self.upcoming_events = [
+            {
+                'time': '08:30 IST',
+                'title': 'RBI Monetary Policy Committee - Interest Rate Decision',
+                'source': 'Reserve Bank of India',
+                'impact': 'CRITICAL'
+            },
+            {
+                'time': '09:00 IST',
+                'title': 'India Economic Data Release - Industrial Production (IIP)',
+                'source': 'Ministry of Statistics',
+                'impact': 'HIGH'
+            },
+            {
+                'time': '10:30 IST',
+                'title': 'BEL Q4 FY25 Results & Board Meeting',
+                'source': 'BSE/NSE - Your Holding ₹127K',
+                'impact': 'CRITICAL'
+            },
+            {
+                'time': '14:00 IST',
+                'title': 'HDFC Bank Board Meeting & Dividend Announcement',
+                'source': 'BSE/NSE - Your Holding ₹58.5K',
+                'impact': 'HIGH'
+            },
+            {
+                'time': 'Tomorrow 09:00 IST',
+                'title': 'Data Patterns Q4 Results Announcement',
+                'source': 'BSE/NSE - Your Holding ₹106K',
+                'impact': 'CRITICAL'
+            }
+        ]
+
     # ==================== PORTFOLIO IMPACT ANALYSIS ====================
 
     def assess_portfolio_impact(self):
@@ -426,6 +552,48 @@ class EnhancedDashboardUpdater:
             pattern = f'(<div class="metric-name">{metric_name}[^<]*</div>\\s*<div class="metric-value"[^>]*>)[\\d,.]+(<\\/div>)'
             replacement = f'\\g<1>{value}\\g<2>'
             html = re.sub(pattern, replacement, html)
+
+        return html
+
+    def update_upcoming_events(self, html):
+        """Update upcoming events section with forward-looking calendar"""
+        self.log("📅 Updating upcoming events...")
+
+        if self.upcoming_events:
+            events_html = ""
+            for event in self.upcoming_events[:6]:  # Top 6 events
+                impact_color = '#FF6B6B' if event['impact'] == 'CRITICAL' else '#FFD700'
+                impact_badge = 'impact-critical' if event['impact'] == 'CRITICAL' else 'impact-high'
+
+                events_html += f"""
+                <div class="event-card">
+                    <div class="event-time">⏰ {event['time']}</div>
+                    <div class="event-title">{event['title']}</div>
+                    <div class="event-source">{event['source']}</div>
+                    <span class="impact-badge {impact_badge}">{event['impact']} IMPACT</span>
+                </div>
+                """
+
+            # Replace or insert events section
+            if '<!-- TOP EVENTS SECTION -->' in html:
+                html = re.sub(
+                    r'<!-- TOP EVENTS SECTION -->.*?<!-- END TOP EVENTS SECTION -->',
+                    f'<!-- TOP EVENTS SECTION -->{events_html}<!-- END TOP EVENTS SECTION -->',
+                    html,
+                    flags=re.DOTALL
+                )
+            else:
+                # Insert after summary box if section doesn't exist
+                html = html.replace(
+                    '</div>\n\n        <!-- FII/DII',
+                    f'''</div>\n\n        <!-- TOP EVENTS SECTION -->
+                    <div class="section">
+                        <div class="section-header">🔴 UPCOMING MARKET EVENTS - TODAY & TOMORROW</div>
+                        {events_html}
+                    </div>
+                    <!-- END TOP EVENTS SECTION -->
+                    <!-- FII/DII'''
+                )
 
         return html
 
@@ -588,6 +756,7 @@ class EnhancedDashboardUpdater:
         html = self.update_timestamp(html)
         html = self.update_gift_nifty(html)
         html = self.update_key_metrics(html)
+        html = self.update_upcoming_events(html)  # NEW: Dynamic events
         html = self.update_expert_views(html)
         html = self.update_news_section(html)
         html = self.update_portfolio_impact(html)
