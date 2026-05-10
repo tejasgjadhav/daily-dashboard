@@ -24,8 +24,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4 pytz
 
-      - name: Run dashboard update script
-        run: python update_dashboard.py
+      - name: Run FULL dashboard update script
+        run: python full_dashboard_update.py
 
       - name: Check if changes were made
         id: check_changes
