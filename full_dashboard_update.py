@@ -678,12 +678,20 @@ class EnhancedDashboardUpdater:
                     '</div>\n\n        <!-- FII/DII',
                     f'''</div>\n\n        <!-- TOP EVENTS SECTION -->
                     <div class="section">
-                        <div class="section-header">🔴 UPCOMING MARKET EVENTS - TODAY & TOMORROW</div>
+                        <div class="section-header">🔴 UPCOMING MARKET EVENTS - NEXT TRADING DAY</div>
                         {events_html}
                     </div>
                     <!-- END TOP EVENTS SECTION -->
                     <!-- FII/DII'''
                 )
+
+        # Update the events section header from "TODAY" to "NEXT TRADING DAY"
+        next_trading_date = self.next_trading_day.strftime('%A %B %d, %Y')
+        html = re.sub(
+            r'🔴 TOP PRIORITY EVENTS - TODAY',
+            f'🔴 UPCOMING EVENTS - {next_trading_date} (NEXT TRADING DAY)',
+            html
+        )
 
         return html
 
@@ -792,18 +800,29 @@ class EnhancedDashboardUpdater:
 
         last_trading_date = self.last_trading_day.strftime('%B %d, %Y')
         next_trading_date_str = self.next_trading_day.strftime('%A %B %d')
+        today_date_str = self.today.strftime('%B %d, %Y')
 
-        summary = f"""⚡ TODAY'S INTELLIGENCE SUMMARY - {self.today.strftime('%B %d, %Y')} (Market: {market_status}) ✅<br/>
+        # Update summary title
+        summary_title = f"""⚡ TODAY'S SUMMARY - {today_date_str} (Market: {market_status}) ✅"""
+        html = re.sub(
+            r'<div class="summary-title">.*?</div>',
+            f'<div class="summary-title">{summary_title}</div>',
+            html,
+            count=1,
+            flags=re.DOTALL
+        )
+
+        # Update summary text
+        summary_text = f"""⚡ TODAY'S INTELLIGENCE SUMMARY - {today_date_str} (Market: {market_status}) ✅<br/>
                 <strong>MARKET STATUS:</strong> {market_status} | Last Trading Day: {last_trading_date}<br/>
                 <strong>LAST TRADING DATA:</strong> Nifty 50: {self.market_data.get('nifty_50', '24,176')} | SENSEX: {self.market_data.get('sensex', '77,328')}<br/>
                 <strong>KEY METRICS:</strong> VIX: {self.market_data.get('vix', '16.84')} | USD/INR: {self.market_data.get('usd_inr', '95.43')} (Record Low)<br/>
                 <strong>PORTFOLIO:</strong> BEL & Data Patterns STRONG (Defence Cycle) | HDFC Stable | ACCUMULATE on dips<br/>
                 <strong>NEXT TRADING DAY EVENTS:</strong> {next_trading_date_str} - RBI Policy | Earnings Announcements"""
 
-        # Use more specific pattern to match the exact summary-text div
         html = re.sub(
             r'<div class="summary-text">.*?</div>',
-            f'<div class="summary-text">{summary}</div>',
+            f'<div class="summary-text">{summary_text}</div>',
             html,
             count=1,
             flags=re.DOTALL
