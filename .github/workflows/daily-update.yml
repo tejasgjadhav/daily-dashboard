@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 pytz
+          pip install -r requirements.txt
 
       - name: Run FULL dashboard update script
         run: python full_dashboard_update.py
