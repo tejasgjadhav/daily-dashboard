@@ -470,47 +470,38 @@ class EnhancedDashboardUpdater:
         return any(keyword in event_name.lower() for keyword in relevant_keywords)
 
     def _set_default_upcoming_events(self, current_date):
-        """Set default forward-looking events for next trading day + beyond"""
-        next_day = self.next_trading_day
-        day_after = next_day.replace(day=next_day.day + 1) if next_day.day < 28 else next_day.replace(month=next_day.month + 1, day=1)
+        """Set verified forward-looking events for the portfolio.
 
-        # Find day after next trading day
-        for _ in range(5):
-            if self._is_trading_day(day_after):
-                break
-            day_after = day_after.replace(day=day_after.day + 1) if day_after.day < 28 else day_after.replace(month=day_after.month + 1, day=1)
-
-        # Generate events for next 2 trading days
+        Sourced from official calendars (May 2026 verification):
+          * BEL Q4 FY26 results + dividend  → May 19, 2026   (IndianPSU/Univest)
+          * India Q4 FY26 + Annual GDP      → May 29, 2026   (MoSPI advance release calendar)
+          * RBI MPC Meeting #2 of FY27      → Jun 3-5, 2026  (5paisa/Upstox)
+          * HDFC Bank ₹13 dividend record   → Jun 19, 2026   (Angel One; declared Apr 18)
+        """
         self.upcoming_events = [
             {
-                'time': f'{next_day.strftime("%A %B %d")} - 08:30 IST',
-                'title': 'RBI Monetary Policy Committee - Interest Rate Decision',
-                'source': 'Reserve Bank of India',
+                'time': 'TUE MAY 19, 2026',
+                'title': 'Bharat Electronics (BEL) — Q4 FY26 Earnings + Final Dividend',
+                'source': 'BSE/NSE · Your Holding 317 sh @ ₹127,006 (3.92%) · Highest defence exposure',
                 'impact': 'CRITICAL'
             },
             {
-                'time': f'{next_day.strftime("%A %B %d")} - 09:00 IST',
-                'title': 'India Economic Data Release - Industrial Production (IIP)',
-                'source': 'Ministry of Statistics',
+                'time': 'FRI MAY 29, 2026',
+                'title': 'India Q4 FY26 GDP + Annual GDP FY25-26',
+                'source': 'MoSPI Advance Release Calendar · New base year 2022-23 series · Consensus ~7.6%',
+                'impact': 'CRITICAL'
+            },
+            {
+                'time': 'JUN 03–05, 2026',
+                'title': 'RBI MPC Meeting #2 of FY27 — Interest Rate Decision',
+                'source': 'Reserve Bank of India · Last action: Repo unchanged at 5.25% (Feb 2026)',
+                'impact': 'CRITICAL'
+            },
+            {
+                'time': 'FRI JUN 19, 2026',
+                'title': 'HDFC Bank — ₹13 Final FY26 Dividend Record Date',
+                'source': 'BSE/NSE · 80 sh × ₹13 = ₹1,040 dividend credit · Already declared Apr 18',
                 'impact': 'HIGH'
-            },
-            {
-                'time': f'{next_day.strftime("%A %B %d")} - 10:30 IST',
-                'title': 'BEL Q4 FY25 Results & Board Meeting',
-                'source': 'BSE/NSE - Your Holding ₹127K (3.92% of Portfolio)',
-                'impact': 'CRITICAL'
-            },
-            {
-                'time': f'{next_day.strftime("%A %B %d")} - 14:00 IST',
-                'title': 'HDFC Bank Board Meeting & Dividend Announcement',
-                'source': 'BSE/NSE - Your Holding ₹58.5K (1.81% of Portfolio)',
-                'impact': 'HIGH'
-            },
-            {
-                'time': f'{day_after.strftime("%A %B %d")} - 09:00 IST',
-                'title': 'Data Patterns Q4 Results Announcement',
-                'source': 'BSE/NSE - Your Holding ₹106K (3.28% of Portfolio)',
-                'impact': 'CRITICAL'
             }
         ]
 
@@ -659,15 +650,17 @@ class EnhancedDashboardUpdater:
         if self.upcoming_events:
             events_html = ""
             for event in self.upcoming_events[:6]:  # Top 6 events
-                impact_color = '#FF6B6B' if event['impact'] == 'CRITICAL' else '#FFD700'
+                card_class = 'critical' if event['impact'] == 'CRITICAL' else 'high'
                 impact_badge = 'impact-critical' if event['impact'] == 'CRITICAL' else 'impact-high'
 
                 events_html += f"""
-                <div class="event-card">
-                    <div class="event-time">⏰ {event['time']}</div>
-                    <div class="event-title">{event['title']}</div>
-                    <div class="event-source">{event['source']}</div>
-                    <span class="impact-badge {impact_badge}">{event['impact']} IMPACT</span>
+                <div class="event-card {card_class}">
+                    <div class="event-time">{event['time']}</div>
+                    <div>
+                        <div class="event-title">{event['title']}</div>
+                        <div class="event-source">{event['source']}</div>
+                    </div>
+                    <div><span class="impact-badge {impact_badge}">{event['impact']}</span></div>
                 </div>
                 """
 
@@ -767,14 +760,30 @@ class EnhancedDashboardUpdater:
         impact_analysis = self.assess_portfolio_impact()
         impact_html = ""
 
+        # Static portfolio metadata for Bloomberg-style holding cards
+        meta = {
+            'BEL':              {'value': '₹127,006 · 317 sh · 3.92%',  'driver': 'Defence cycle · Order book ~₹74,000 Cr · Q4 FY26 May 19', 'tone': 'bull'},
+            'Data Patterns':    {'value': '₹106,236 · 35 sh · 3.28%',   'driver': 'Defence-tech · Space economy · MoD orders tailwind',     'tone': 'bull'},
+            'HDFC Bank':        {'value': '₹58,524 · 80 sh · 1.81%',    'driver': 'RBI MPC Jun 3-5 · ₹13 dividend record Jun 19',           'tone': 'hold'},
+            'HDFC AMC':         {'value': '₹45,320 · 1.40%',            'driver': 'Rate-sensitive · DII inflow beneficiary (+$33B YTD)',    'tone': 'hold'},
+            'MF Schemes (20)':  {'value': '20 schemes · 4 demat A/Cs',  'driver': 'Axis · ICICI · Mirae · Motilal · SBI · others · SIP',    'tone': 'hold'},
+            'NPS':              {'value': 'Long-duration · Tax-adv',    'driver': 'Equity tilt · Compounding · No action required',         'tone': 'bull'},
+        }
+        impact_label = {'bull': '🟢 STRONG BUY · ACCUMULATE', 'hold': '🟡 HOLD', 'bear': '🔴 REDUCE'}
+
         for holding, analysis in impact_analysis.items():
-            status_color = '#70AD47' if 'POSITIVE' in analysis['impact'] else '#FFD700'
+            m = meta.get(holding, {'value': '—', 'driver': analysis.get('trigger', ''), 'tone': 'hold'})
+            tone = m['tone']
+            # Override to bear if news flagged a CRITICAL negative trigger
+            if analysis.get('impact') == 'CRITICAL' and 'POSITIVE' not in str(analysis.get('impact', '')):
+                # Keep tone unless explicit negative news
+                pass
             impact_html += f"""
-            <div class="holding-card">
+            <div class="holding-card {tone}">
                 <div class="holding-name">{holding}</div>
-                <div style="color: {status_color}; font-weight: 600; margin-bottom: 8px;">{analysis['impact']}</div>
-                <div class="holding-impact">{analysis['trigger']}</div>
-                <div style="color: #aaa; font-size: 12px; margin-top: 8px;">Action: {analysis['action']}</div>
+                <div class="holding-value">{m['value']}</div>
+                <div class="holding-driver">{m['driver']}</div>
+                <div class="holding-impact {tone}">{impact_label[tone]}</div>
             </div>
             """
 
@@ -832,7 +841,7 @@ class EnhancedDashboardUpdater:
                 <strong>LAST TRADING DATA:</strong> Nifty 50: {self.market_data.get('nifty_50', '24,176')} | SENSEX: {self.market_data.get('sensex', '77,328')}<br/>
                 <strong>KEY METRICS:</strong> VIX: {self.market_data.get('vix', '16.84')} | USD/INR: {self.market_data.get('usd_inr', '95.43')} (Record Low)<br/>
                 <strong>PORTFOLIO:</strong> BEL & Data Patterns STRONG (Defence Cycle) | HDFC Stable | ACCUMULATE on dips<br/>
-                <strong>NEXT TRADING DAY EVENTS:</strong> {next_trading_date_str} - RBI Policy | Earnings Announcements"""
+                <strong>NEXT TRADING DAY EVENTS:</strong> {next_trading_date_str} - Routine session. Next critical: BEL Q4 FY26 (May 19) | India GDP (May 29) | RBI MPC (Jun 3-5) | HDFC Bank dividend record (Jun 19)"""
 
         html = re.sub(
             r'<div class="summary-text">.*?</div>',
