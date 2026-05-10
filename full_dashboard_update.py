@@ -603,10 +603,17 @@ class EnhancedDashboardUpdater:
             count=1
         )
 
+        # Update GIFT Nifty header - remove "TODAY" reference
+        html = re.sub(
+            r'🌍 GIFT NIFTY \(NSE IX\) - LIVE \d+:\d+ AM IST [A-Z]+',
+            f'🌍 GIFT NIFTY (NSE IX) - PRE-MARKET {next_trading_date}',
+            html
+        )
+
         # Update GIFT Nifty date context if present
         html = re.sub(
-            r'LIVE \d+:\d+ AM IST \w+ \d+, \d+',
-            f'LIVE NEXT TRADING DAY: {next_trading_date}',
+            r'May \d+, \d+ \d+:\d+ AM \| LIVE VERIFIED DATA',
+            f'{next_trading_date} 8:30 AM | PRE-MARKET VERIFIED DATA',
             html
         )
 
@@ -690,6 +697,13 @@ class EnhancedDashboardUpdater:
         html = re.sub(
             r'🔴 TOP PRIORITY EVENTS - TODAY',
             f'🔴 UPCOMING EVENTS - {next_trading_date} (NEXT TRADING DAY)',
+            html
+        )
+
+        # Also update "EXPERT MARKET VIEWS - TODAY" to next trading day
+        html = re.sub(
+            r'💡 EXPERT MARKET VIEWS - TODAY',
+            f'💡 EXPERT MARKET VIEWS - {next_trading_date}',
             html
         )
 
