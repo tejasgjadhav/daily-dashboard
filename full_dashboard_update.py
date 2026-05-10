@@ -630,6 +630,21 @@ class EnhancedDashboardUpdater:
 
         return html
 
+    def update_fii_dii_header(self, html):
+        """Update FII/DII section header with correct last trading day date"""
+        self.log("💰 Updating FII/DII header...")
+
+        last_trading_date_str = self.last_trading_day.strftime('%B %d, %Y').upper()
+
+        # Update the FII/DII section header with correct date
+        html = re.sub(
+            r'FII/DII CAPITAL FLOWS - [A-Z]+ \d+, \d+',
+            f'FII/DII CAPITAL FLOWS - {last_trading_date_str}',
+            html
+        )
+
+        return html
+
     def update_upcoming_events(self, html):
         """Update upcoming events section with forward-looking calendar"""
         self.log("📅 Updating upcoming events...")
@@ -776,19 +791,22 @@ class EnhancedDashboardUpdater:
         market_status = "NSE/BSE OPEN" if is_market_open else f"CLOSED (Next: {self.next_trading_day.strftime('%A, %B %d')})"
 
         last_trading_date = self.last_trading_day.strftime('%B %d, %Y')
+        next_trading_date_str = self.next_trading_day.strftime('%A %B %d')
 
         summary = f"""⚡ TODAY'S INTELLIGENCE SUMMARY - {self.today.strftime('%B %d, %Y')} (Market: {market_status}) ✅<br/>
                 <strong>MARKET STATUS:</strong> {market_status} | Last Trading Day: {last_trading_date}<br/>
                 <strong>LAST TRADING DATA:</strong> Nifty 50: {self.market_data.get('nifty_50', '24,176')} | SENSEX: {self.market_data.get('sensex', '77,328')}<br/>
                 <strong>KEY METRICS:</strong> VIX: {self.market_data.get('vix', '16.84')} | USD/INR: {self.market_data.get('usd_inr', '95.43')} (Record Low)<br/>
                 <strong>PORTFOLIO:</strong> BEL & Data Patterns STRONG (Defence Cycle) | HDFC Stable | ACCUMULATE on dips<br/>
-                <strong>NEXT TRADING DAY EVENTS:</strong> {self.next_trading_day.strftime('%A %B %d')} - RBI Policy | Earnings Announcements"""
+                <strong>NEXT TRADING DAY EVENTS:</strong> {next_trading_date_str} - RBI Policy | Earnings Announcements"""
 
+        # Use more specific pattern to match the exact summary-text div
         html = re.sub(
-            r'<div class="summary-text">[^<]*</div>',
+            r'<div class="summary-text">.*?</div>',
             f'<div class="summary-text">{summary}</div>',
             html,
-            count=1
+            count=1,
+            flags=re.DOTALL
         )
 
         return html
@@ -837,6 +855,7 @@ class EnhancedDashboardUpdater:
         html = self.update_timestamp(html)
         html = self.update_gift_nifty(html)
         html = self.update_key_metrics(html)
+        html = self.update_fii_dii_header(html)  # NEW: Update FII/DII date
         html = self.update_upcoming_events(html)  # NEW: Dynamic events
         html = self.update_expert_views(html)
         html = self.update_news_section(html)
