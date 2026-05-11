@@ -1,9 +1,11 @@
 name: Daily Dashboard Update (Enhanced)
 
 on:
-  schedule:
-    # 9:45 AM IST = 4:15 AM UTC · Weekdays only (Mon–Fri)
-    - cron: '15 4 * * 1-5'
+  # Scheduled cron DISABLED — Claude scheduled task is the sole automated runner (9:30 AM IST weekdays).
+  # GitHub Pages auto-deploys on every push to main, so no second runner is needed.
+  # Manual fallback only — trigger from GitHub Actions tab if Claude is unavailable.
+  # schedule:
+  #   - cron: '15 4 * * 1-5'   # 9:45 AM IST · weekdays
   workflow_dispatch:
 
 jobs:
