@@ -1,117 +1,95 @@
-name: Daily Dashboard Update (Enhanced)
+name: Daily Dashboard Update (Claude API)
+
+# Fully server-side daily dashboard refresh.
+# No laptop required — Claude API + GitHub Actions + GitHub Pages.
+#
+# Trigger: weekdays at 8:30 AM IST (= 3:00 AM UTC).
+# Also supports manual trigger from the Actions tab.
 
 on:
-  # Scheduled cron DISABLED — Claude scheduled task is the sole automated runner (9:30 AM IST weekdays).
-  # GitHub Pages auto-deploys on every push to main, so no second runner is needed.
-  # Manual fallback only — trigger from GitHub Actions tab if Claude is unavailable.
-  # schedule:
-  #   - cron: '15 4 * * 1-5'   # 9:45 AM IST · weekdays
+  schedule:
+    - cron: '0 3 * * 1-5'   # 8:30 AM IST · Mon-Fri (UTC 03:00)
   workflow_dispatch:
+
+permissions:
+  contents: write   # needed to push the refreshed index.html back to main
+
+concurrency:
+  group: daily-update
+  cancel-in-progress: false
 
 jobs:
   update-dashboard:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r scripts/requirements.txt
 
-      - name: Run FULL dashboard update script
-        run: python full_dashboard_update.py
+      - name: Sanity check — secret is present
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "::error::ANTHROPIC_API_KEY secret is not set in this repo. See README for setup."
+            exit 1
+          fi
+          echo "API key present (length ${#ANTHROPIC_API_KEY})."
 
-      - name: Check if changes were made
-        id: check_changes
+      - name: Run Claude API dashboard update
+        id: update
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_MODEL: 'claude-sonnet-4-6'
+          MAX_TOKENS: '32000'
+          MAX_WEB_SEARCHES: '12'
+        run: python scripts/update_dashboard.py
+
+      - name: Detect changes
+        id: changes
         run: |
           if git diff --quiet index.html; then
-            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes detected in index.html."
           else
-            echo "changes=true" >> $GITHUB_OUTPUT
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "index.html updated — proceeding to commit."
+            git diff --stat index.html
           fi
 
-      - name: Commit and push changes
-        if: steps.check_changes.outputs.changes == 'true'
+      - name: Commit and push
+        if: steps.changes.outputs.changed == 'true'
         run: |
-          git config user.name 'GitHub Actions Bot'
-          git config user.email 'actions@github.com'
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
-          git commit -m "🤖 Automated Dashboard Update - $(date '+%Y-%m-%d %H:%M IST') - GIFT Nifty, Nifty 50, SENSEX, VIX, USD/INR all VERIFIED" || echo "No changes to commit"
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TS=$(TZ='Asia/Kolkata' date '+%Y-%m-%d %H:%M IST')
+          git commit -m "📊 Daily auto-update — ${TS} · Claude API + GitHub Actions"
+          git push origin HEAD:main
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == 'refs/heads/main' && steps.check_changes.outputs.changes == 'true'
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-
-      - name: Send success email notification
-        if: success() && steps.check_changes.outputs.changes == 'true'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "✅ Daily Dashboard Updated - $(date '+%Y-%m-%d %H:%M IST')"
-          to: tejasipsjadhav@gmail.com
-          from: ${{ secrets.EMAIL_USERNAME }}
-          body: |
-            ✅ DASHBOARD UPDATED SUCCESSFULLY
-
-            Timestamp: $(date '+%Y-%m-%d %H:%M:%S IST')
-
-            Market Data Updated:
-            - GIFT Nifty: LIVE
-            - Nifty 50: VERIFIED
-            - SENSEX: VERIFIED
-            - India VIX: VERIFIED
-            - USD/INR: VERIFIED
-            - FII/DII Flows: Tracked
-            - Trump Iran War: Latest
-
-            📊 View Dashboard: https://tejasgjadhav.github.io/daily-dashboard
-
-            🔗 GitHub Actions Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-            All metrics are sourced and verified from official NSE, RBI, and news sources.
-
-      - name: Send failure notification
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "❌ Dashboard Update Failed - $(date '+%Y-%m-%d %H:%M IST')"
-          to: tejasipsjadhav@gmail.com
-          from: ${{ secrets.EMAIL_USERNAME }}
-          body: |
-            ❌ DASHBOARD UPDATE FAILED
-
-            Time: $(date '+%Y-%m-%d %H:%M:%S IST')
-
-            Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-            Action needed: Review the GitHub Actions logs to debug the issue.
-
-      - name: Display success summary
-        if: success() && steps.check_changes.outputs.changes == 'true'
+      - name: Summary
+        if: always()
         run: |
-          echo ""
-          echo "✅ DASHBOARD UPDATE COMPLETE"
-          echo "📊 Live Dashboard: https://tejasgjadhav.github.io/daily-dashboard"
-          echo "📧 Email sent to: tejasipsjadhav@gmail.com"
-          echo ""
+          {
+            echo "### Daily Dashboard Run"
+            echo ""
+            echo "- Run time (UTC): $(date -u '+%Y-%m-%d %H:%M:%S')"
+            echo "- Run time (IST): $(TZ='Asia/Kolkata' date '+%Y-%m-%d %H:%M:%S')"
+            echo "- index.html changed: ${{ steps.changes.outputs.changed }}"
+            echo "- Update step outcome: ${{ steps.update.outcome }}"
+            echo "- Dashboard: https://tejasgjadhav.github.io/daily-dashboard"
+          } >> "$GITHUB_STEP_SUMMARY"
