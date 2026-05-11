@@ -32,12 +32,37 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 try:
+    import anthropic as _anthropic_pkg
     from anthropic import Anthropic, APIError
 except ImportError:
     sys.stderr.write(
         "ERROR: anthropic SDK not installed. Run: pip install anthropic\n"
     )
     sys.exit(1)
+
+
+def _dump_exception(e: Exception) -> None:
+    """Verbose error dump for any API exception — print everything useful."""
+    sys.stderr.write(f"\n--- API CALL FAILED ---\n")
+    sys.stderr.write(f"Exception class: {e.__class__.__module__}.{e.__class__.__name__}\n")
+    sys.stderr.write(f"Exception str:   {str(e)}\n")
+    for attr in ("status_code", "message", "type"):
+        if hasattr(e, attr):
+            sys.stderr.write(f"  .{attr}: {getattr(e, attr)!r}\n")
+    body = getattr(e, "body", None)
+    if body is not None:
+        sys.stderr.write(f"  .body: {body!r}\n")
+    resp = getattr(e, "response", None)
+    if resp is not None:
+        sys.stderr.write(f"  .response: {resp!r}\n")
+        text = getattr(resp, "text", None)
+        if text:
+            sys.stderr.write(f"  .response.text: {text[:2000]}\n")
+    req = getattr(e, "request", None)
+    if req is not None:
+        sys.stderr.write(f"  .request.url: {getattr(req, 'url', '?')}\n")
+        sys.stderr.write(f"  .request.method: {getattr(req, 'method', '?')}\n")
+    sys.stderr.write(f"--- END ERROR DUMP ---\n\n")
 
 
 # ---------- Config ----------
@@ -121,6 +146,8 @@ def main() -> int:
         max_searches = DEFAULT_MAX_SEARCHES
 
     log(f"Model: {model} | max_tokens: {max_tokens} | max_searches: {max_searches}")
+    log(f"anthropic SDK version: {getattr(_anthropic_pkg, '__version__', 'unknown')}")
+    log(f"API key prefix: {api_key[:8]}…{api_key[-4:]} (len={len(api_key)})")
 
     current_html = load_text(INDEX_PATH, "index.html")
     prompt_template = load_text(PROMPT_PATH, "prompt template")
@@ -164,10 +191,12 @@ def main() -> int:
             ],
         )
     except APIError as e:
-        sys.stderr.write(f"ERROR: Anthropic API call failed: {e}\n")
+        sys.stderr.write("ERROR: Anthropic API call failed (APIError).\n")
+        _dump_exception(e)
         return 2
     except Exception as e:
-        sys.stderr.write(f"ERROR: unexpected exception during API call: {e}\n")
+        sys.stderr.write("ERROR: unexpected exception during API call.\n")
+        _dump_exception(e)
         return 2
 
     log(f"Response received. stop_reason={response.stop_reason}")
