@@ -176,7 +176,7 @@ def main() -> int:
     import httpx
     client = Anthropic(
         api_key=api_key,
-        timeout=httpx.Timeout(900.0, connect=30.0),  # 15 min total, 30s connect
+        timeout=httpx.Timeout(1200.0, connect=30.0),  # 20 min total, 30s connect
     )
 
     MAX_RETRIES = 3
