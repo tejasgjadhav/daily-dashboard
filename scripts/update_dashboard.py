@@ -146,13 +146,18 @@ def main() -> int:
     except ValueError:
         max_searches = DEFAULT_MAX_SEARCHES
 
+    now_ist = datetime.now(IST)
+    if now_ist.weekday() >= 5:  # 5=Saturday, 6=Sunday IST
+        log(f"Today is {now_ist.strftime('%A')} — skipping update (markets closed on weekends).")
+        log("This run was likely a delayed GitHub Actions job from a weekday cron trigger.")
+        return 0
+
     log(f"Model: {model} | max_tokens: {max_tokens} | max_searches: {max_searches}")
     log(f"anthropic SDK version: {getattr(_anthropic_pkg, '__version__', 'unknown')}")
     log(f"API key prefix: {api_key[:8]}…{api_key[-4:]} (len={len(api_key)})")
 
     prompt_template = load_text(PROMPT_PATH, "prompt template")
 
-    now_ist = datetime.now(IST)
     context_block = (
         f"RUN TIMESTAMP (IST): {now_ist.strftime('%Y-%m-%d %H:%M:%S %A')}\n"
         f"RUN TIMESTAMP (UTC): {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n"
