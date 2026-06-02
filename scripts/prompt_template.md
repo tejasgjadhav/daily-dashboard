@@ -16,13 +16,13 @@ The dashboard sections, top to bottom:
 4. **Summary intelligence panel** — short narrative paragraph + a "MY VIEW" stanza tying together overnight cues, geopolitics, and the day's setup
 5. **Iran-US conflict panel** — qualitative geopolitical commentary on last ~24h, with day-counter and verified incident references
 6. **Anil Singhvi expert view panel** — pre-market support/resistance levels and stance
-7. **Portfolio holding cards** — BEL, Dixon Technologies (DPT), HDFC Bank, HDFC AMC, Mutual Funds (HDFC Defence / Multi-cap), NPS. Each card needs latest price + a "Pre-Market My View" line with action (HOLD / ADD / ACCUMULATE / TRIM / WAIT) and one-line rationale.
+7. **Portfolio holding cards** — BEL, Data Patterns (DATAPATT), Polycab India (POLYCAB), Goldiam International (GOLDIAM), HDFC Bank, HDFC AMC, Mutual Funds (HDFC Defence / Multi-cap), NPS. Each card needs latest price + a "Pre-Market My View" line with action (HOLD / ADD / ACCUMULATE / TRIM / WAIT) and one-line rationale.
 8. **News feed** — 5-8 verified items from last 24h, each with publication name (and date if recent)
 9. **Footer** — auto-update timestamp + attribution line
 
-## Required searches (use the `web_search` tool aggressively, ≥ 8 calls)
+## Required searches
 
-Search for the freshest data available right now:
+Search for the freshest data available right now (use the `web_search` tool aggressively, ≥ 10 calls):
 
 1. "Nifty 50 close today" and "Nifty 50 previous close points"
 2. "GIFT Nifty live" or "GIFT Nifty today value"
@@ -32,10 +32,12 @@ Search for the freshest data available right now:
 6. "Brent crude oil price today"
 7. **"Anil Singhvi Zee Business pre-market levels today"** — get his Nifty support/resistance
 8. "BEL Bharat Electronics share price today" + any defence news
-9. "Dixon Technologies share price today"
-10. "HDFC Bank HDFC AMC share price today"
-11. "Iran US Hormuz Strait latest news today"
-12. "Indian stock market news last 24 hours"
+9. "Data Patterns India share price today DATAPATT NSE"
+10. "Polycab India share price today POLYCAB NSE"
+11. "Goldiam International share price today GOLDIAM NSE"
+12. "HDFC Bank HDFC AMC share price today"
+13. "Iran US Hormuz Strait latest news today"
+14. "Indian stock market news last 24 hours"
 
 If a specific source is blocked, use what search snippets give you. Cross-reference at least two sources before quoting a hard number.
 
@@ -53,7 +55,9 @@ Every portfolio card must have a one-line "Pre-Market My View" with:
 
 Examples of good lines:
 - "BEL — HOLD · ADD BELOW ₹420 · defence theme intact, await ₹450 break"
-- "DPT — WAIT · gap-down likely on weak China cues, re-enter near ₹4,000"
+- "DATAPATT — WAIT · gap-down likely on weak cues, re-enter near support"
+- "POLYCAB — ACCUMULATE · wire demand steady, hold above ₹6,000"
+- "GOLDIAM — HOLD · gold prices elevated, watch export order news"
 - "HDFC Bank — HOLD · MPC outcome Wed, no fresh positions till then"
 
 ## Footer line (always refresh)
