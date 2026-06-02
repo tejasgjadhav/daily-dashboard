@@ -58,7 +58,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_MODEL: 'claude-sonnet-4-6'
           MAX_TOKENS: '32000'
-          MAX_WEB_SEARCHES: '12'
+          MAX_WEB_SEARCHES: '15'
         run: python scripts/update_dashboard.py
 
       - name: Detect changes
