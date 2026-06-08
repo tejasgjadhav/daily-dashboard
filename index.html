@@ -2,896 +2,1000 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Tejas Jadhav — Daily Market Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tejas Daily Market Dashboard — Pre-Market | 08 Jun 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg: #0d0f14;
-    --surface: #14171f;
-    --surface2: #1a1e2a;
-    --border: #252a38;
-    --accent-blue: #3b82f6;
-    --accent-green: #22c55e;
-    --accent-red: #ef4444;
-    --accent-amber: #f59e0b;
-    --accent-purple: #a855f7;
-    --accent-cyan: #06b6d4;
-    --accent-orange: #f97316;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Inter', sans-serif;
-  }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2330;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --warn: #d29922;
+    --danger: #f85149;
+    --muted: #8b949e;
+    --text: #e6edf3;
+    --text2: #c9d1d9;
+    --tag-bg: #21262d;
+    --green: #3fb950;
+    --red: #f85149;
+    --amber: #d29922;
+    --purple: #bc8cff;
+    --teal: #39d353;
+  }
   html { scroll-behavior: smooth; }
   body {
     background: var(--bg);
-    color: var(--text-primary);
-    font-family: var(--sans);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
     font-size: 14px;
-    min-height: 100vh;
     line-height: 1.6;
+    min-height: 100vh;
   }
-
-  /* ─── HEADER ─── */
-  .header {
-    background: linear-gradient(135deg, #0f1623 0%, #161d2e 100%);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 24px 10px;
-    position: sticky; top: 0; z-index: 100;
-  }
-  .header-top {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .brand {
-    font-size: 18px; font-weight: 800;
-    background: linear-gradient(90deg, #3b82f6, #06b6d4);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    letter-spacing: -0.5px;
-  }
-  .brand span { font-weight: 300; opacity: 0.7; }
-  .session-badge {
-    font-family: var(--mono); font-size: 11px;
-    padding: 4px 12px; border-radius: 20px;
-    background: rgba(245,158,11,0.15);
-    border: 1px solid rgba(245,158,11,0.35);
-    color: var(--accent-amber);
-    letter-spacing: 0.5px;
-    animation: pulse-amber 2.5s ease-in-out infinite;
-  }
-  @keyframes pulse-amber {
-    0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.3); }
-    50% { box-shadow: 0 0 0 6px rgba(245,158,11,0); }
-  }
-
-  /* ─── TICKER STRIP ─── */
+  a { color: var(--accent); text-decoration: none; }
+  /* ── TICKER STRIP ── */
   .ticker-strip {
-    display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+    overflow: hidden;
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
-  .tick {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 5px 12px;
-    font-family: var(--mono); font-size: 12px;
+  .ticker-inner {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
-  .tick-label { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .tick-val { font-weight: 700; color: var(--text-primary); }
-  .tick-chg.up { color: var(--accent-green); }
-  .tick-chg.dn { color: var(--accent-red); }
-  .tick-chg.neu { color: var(--text-muted); }
-
-  /* ─── MARQUEE ─── */
-  .marquee-bar {
-    background: rgba(239,68,68,0.1);
-    border-top: 1px solid rgba(239,68,68,0.25);
-    border-bottom: 1px solid rgba(239,68,68,0.25);
-    padding: 7px 0; overflow: hidden;
+  .ticker-inner::-webkit-scrollbar { display: none; }
+  .ticker-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 20px;
+    border-right: 1px solid var(--border);
+    min-width: 150px;
+    flex-shrink: 0;
   }
-  .marquee-inner {
-    display: flex; gap: 60px; animation: marquee 32s linear infinite;
-    white-space: nowrap; width: max-content;
+  .ticker-item:last-child { border-right: none; }
+  .ticker-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2px;
   }
-  @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-  .marquee-inner span {
-    font-family: var(--mono); font-size: 12px;
-    color: var(--accent-amber); font-weight: 600; letter-spacing: 0.5px;
+  .ticker-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
   }
-  .marquee-inner .sep { color: var(--text-muted); }
-
-  /* ─── LAYOUT ─── */
-  .container { max-width: 1440px; margin: 0 auto; padding: 20px 20px 40px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-  .col-span-2 { grid-column: span 2; }
-  .col-span-3 { grid-column: span 3; }
-  @media(max-width:1024px) {
-    .grid-4 { grid-template-columns: repeat(2,1fr); }
-    .grid-3 { grid-template-columns: 1fr 1fr; }
-    .col-span-2 { grid-column: span 1; }
-    .col-span-3 { grid-column: span 2; }
+  .ticker-change {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
   }
-  @media(max-width:640px) {
-    .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
-    .col-span-2, .col-span-3 { grid-column: span 1; }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+  .flat { color: var(--muted); }
+  /* ── SESSION MARQUEE ── */
+  .session-banner {
+    background: linear-gradient(90deg, #1f3a5f 0%, #0d2137 50%, #1a3a28 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
   }
-
-  /* ─── STATS STRIP ─── */
+  .session-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .session-label::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .session-meta {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  /* ── STATS STRIP ── */
   .stats-strip {
-    display: grid; grid-template-columns: repeat(4,1fr); gap: 12px;
-    margin-bottom: 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    align-items: center;
   }
-  .stat-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px 16px;
-    display: flex; flex-direction: column; gap: 4px;
+  .stat-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
-  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-muted); }
-  .stat-val { font-family: var(--mono); font-size: 20px; font-weight: 700; }
-  .stat-sub { font-size: 11px; color: var(--text-secondary); }
-  .stat-val.up { color: var(--accent-green); }
-  .stat-val.dn { color: var(--accent-red); }
-  .stat-val.warn { color: var(--accent-amber); }
-
-  /* ─── PANEL ─── */
+  .stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .stat-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  /* ── MAIN LAYOUT ── */
+  .main-wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  /* ── PANEL BASE ── */
   .panel {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; overflow: hidden; margin-bottom: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
   }
   .panel-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 18px; border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
     background: var(--surface2);
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .panel-title {
-    font-size: 12px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; display: flex; align-items: center; gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-  .dot-green { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
-  .dot-red { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); }
-  .dot-amber { background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber); }
-  .dot-blue { background: var(--accent-blue); box-shadow: 0 0 6px var(--accent-blue); }
-  .dot-purple { background: var(--accent-purple); box-shadow: 0 0 6px var(--accent-purple); }
-  .panel-body { padding: 18px; }
-  .panel-tag {
-    font-size: 10px; font-family: var(--mono); padding: 2px 8px;
-    border-radius: 4px; font-weight: 600;
+  .panel-title .icon { font-size: 14px; }
+  .panel-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--tag-bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
-  .tag-red { background: rgba(239,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.3); }
-  .tag-green { background: rgba(34,197,94,0.15); color: var(--accent-green); border: 1px solid rgba(34,197,94,0.3); }
-  .tag-amber { background: rgba(245,158,11,0.15); color: var(--accent-amber); border: 1px solid rgba(245,158,11,0.3); }
-  .tag-blue { background: rgba(59,130,246,0.15); color: var(--accent-blue); border: 1px solid rgba(59,130,246,0.3); }
-  .tag-purple { background: rgba(168,85,247,0.15); color: var(--accent-purple); border: 1px solid rgba(168,85,247,0.3); }
-
-  /* ─── INTELLIGENCE PANEL ─── */
-  .intel-body { padding: 18px 20px; }
-  .intel-narrative {
-    font-size: 14px; line-height: 1.75; color: var(--text-secondary);
-    border-left: 3px solid var(--accent-blue); padding-left: 14px;
+  .badge-red { background: rgba(248,81,73,0.12); color: var(--red); border-color: rgba(248,81,73,0.3); }
+  .badge-green { background: rgba(63,185,80,0.12); color: var(--green); border-color: rgba(63,185,80,0.3); }
+  .badge-amber { background: rgba(210,153,34,0.12); color: var(--amber); border-color: rgba(210,153,34,0.3); }
+  .badge-blue { background: rgba(88,166,255,0.12); color: var(--accent); border-color: rgba(88,166,255,0.3); }
+  .panel-body { padding: 16px 18px; }
+  /* ── SUMMARY PANEL ── */
+  .summary-text {
+    font-size: 13.5px;
+    color: var(--text2);
+    line-height: 1.75;
     margin-bottom: 16px;
   }
-  .intel-narrative strong { color: var(--text-primary); }
   .my-view-box {
-    background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(6,182,212,0.06));
-    border: 1px solid rgba(59,130,246,0.25); border-radius: 10px;
-    padding: 16px 18px;
+    background: linear-gradient(135deg, rgba(88,166,255,0.07) 0%, rgba(63,185,80,0.05) 100%);
+    border: 1px solid rgba(88,166,255,0.25);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 14px 16px;
   }
-  .my-view-label {
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; color: var(--accent-cyan); margin-bottom: 8px;
-    display: flex; align-items: center; gap: 6px;
+  .my-view-title {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
   }
   .my-view-text {
-    font-size: 13px; line-height: 1.7; color: var(--text-primary);
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+  /* ── GEOPOLITICAL PANEL ── */
+  .geo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .geo-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .geo-card-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .geo-card-text {
+    font-size: 12.5px;
+    color: var(--text2);
+    line-height: 1.65;
+  }
+  .day-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--red);
+    background: rgba(248,81,73,0.1);
+    border: 1px solid rgba(248,81,73,0.3);
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    display: block;
+    width: fit-content;
+  }
+  /* ── SINGHVI PANEL ── */
+  .singhvi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .level-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .level-card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .level-card-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .level-card-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+  .singhvi-stance {
+    background: rgba(210,153,34,0.08);
+    border: 1px solid rgba(210,153,34,0.25);
+    border-left: 3px solid var(--amber);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: var(--text2);
+    line-height: 1.65;
+  }
+  .attribution-note {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 10px;
     font-style: italic;
   }
-  .my-view-text em { color: var(--accent-amber); font-style: normal; font-weight: 600; }
-
-  /* ─── GEOPOLITICAL PANEL ─── */
-  .geo-day-counter {
-    font-family: var(--mono); font-size: 28px; font-weight: 800;
-    color: var(--accent-red); line-height: 1;
-  }
-  .geo-day-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .geo-grid { display: grid; grid-template-columns: auto 1fr; gap: 16px 24px; align-items: start; }
-  .geo-counter-block { text-align: center; padding: 10px 14px; background: rgba(239,68,68,0.07); border-radius: 10px; border: 1px solid rgba(239,68,68,0.2); }
-  .geo-narrative { font-size: 13px; line-height: 1.75; color: var(--text-secondary); }
-  .geo-narrative strong { color: var(--text-primary); }
-  .geo-narrative .event-line {
-    background: var(--surface2); border-left: 3px solid var(--accent-red);
-    padding: 8px 12px; border-radius: 4px; margin: 8px 0;
-    font-size: 12px;
-  }
-  .geo-narrative .event-line .evt-date { color: var(--accent-amber); font-weight: 600; font-family: var(--mono); }
-
-  /* ─── SINGHVI PANEL ─── */
-  .singhvi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .level-block {
-    background: var(--surface2); border-radius: 8px; padding: 12px 14px;
-    border: 1px solid var(--border);
-  }
-  .level-block-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 8px; }
-  .level-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-  .level-name { font-size: 12px; color: var(--text-secondary); }
-  .level-num { font-family: var(--mono); font-weight: 700; font-size: 13px; }
-  .level-num.support { color: var(--accent-green); }
-  .level-num.resist { color: var(--accent-red); }
-  .level-num.buy { color: #4ade80; }
-  .level-num.sell { color: #f87171; }
-  .singhvi-stance {
-    margin-top: 14px; padding: 12px 14px;
-    background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2);
-    border-radius: 8px; font-size: 13px; color: var(--text-secondary); line-height: 1.65;
-  }
-  .singhvi-stance strong { color: var(--accent-amber); }
-  .singhvi-attr {
-    font-size: 11px; color: var(--text-muted); margin-top: 10px;
-    padding-top: 8px; border-top: 1px solid var(--border);
-  }
-
-  /* ─── PORTFOLIO CARDS ─── */
-  .port-grid {
+  /* ── PORTFOLIO CARDS ── */
+  .portfolio-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
     gap: 14px;
-    margin-bottom: 16px;
   }
-  @media(max-width:1200px) { .port-grid { grid-template-columns: repeat(3,1fr); } }
-  @media(max-width:900px) { .port-grid { grid-template-columns: repeat(2,1fr); } }
-  @media(max-width:560px) { .port-grid { grid-template-columns: 1fr; } }
-  .port-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; overflow: hidden;
-    transition: border-color 0.2s, transform 0.2s;
-  }
-  .port-card:hover { border-color: var(--accent-blue); transform: translateY(-2px); }
-  .port-card-header {
-    padding: 11px 14px 9px; border-bottom: 1px solid var(--border);
+  .stock-card {
     background: var(--surface2);
-    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0;
+    overflow: hidden;
+    transition: border-color 0.2s;
   }
-  .port-ticker { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--text-primary); }
-  .port-name { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
-  .port-card-body { padding: 12px 14px; }
-  .port-price { font-family: var(--mono); font-size: 22px; font-weight: 800; color: var(--text-primary); }
-  .port-price span { font-size: 12px; font-weight: 400; color: var(--text-muted); }
-  .port-chg { font-family: var(--mono); font-size: 12px; font-weight: 600; margin-top: 2px; }
-  .port-chg.up { color: var(--accent-green); }
-  .port-chg.dn { color: var(--accent-red); }
-  .port-chg.neu { color: var(--text-muted); }
-  .port-divider { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
-  .port-view-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 5px; }
-  .port-view-action {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 10px; font-weight: 700; font-family: var(--mono);
-    padding: 3px 9px; border-radius: 4px; margin-bottom: 5px;
-    text-transform: uppercase; letter-spacing: 0.5px;
+  .stock-card:hover { border-color: var(--accent); }
+  .stock-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--border);
   }
-  .action-hold { background: rgba(59,130,246,0.15); color: var(--accent-blue); border: 1px solid rgba(59,130,246,0.3); }
-  .action-add { background: rgba(34,197,94,0.15); color: var(--accent-green); border: 1px solid rgba(34,197,94,0.3); }
-  .action-wait { background: rgba(245,158,11,0.15); color: var(--accent-amber); border: 1px solid rgba(245,158,11,0.3); }
-  .action-accum { background: rgba(168,85,247,0.15); color: var(--accent-purple); border: 1px solid rgba(168,85,247,0.3); }
-  .action-trim { background: rgba(239,68,68,0.15); color: var(--accent-red); border: 1px solid rgba(239,68,68,0.3); }
-  .port-view-rationale { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
-
-  /* ─── NEWS FEED ─── */
-  .news-list { display: flex; flex-direction: column; gap: 0; }
+  .stock-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .stock-ticker {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .stock-price-block { text-align: right; }
+  .stock-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .stock-change {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .stock-card-body { padding: 10px 14px 12px; }
+  .stock-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .my-view-line {
+    background: var(--tag-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.55;
+  }
+  .action-hold { color: var(--accent); font-weight: 700; }
+  .action-add { color: var(--green); font-weight: 700; }
+  .action-acc { color: var(--teal); font-weight: 700; }
+  .action-wait { color: var(--amber); font-weight: 700; }
+  .action-trim { color: var(--red); font-weight: 700; }
+  .action-book { color: var(--purple); font-weight: 700; }
+  .pending-tag {
+    font-size: 11px;
+    color: var(--amber);
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(210,153,34,0.1);
+    border: 1px solid rgba(210,153,34,0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  /* ── NEWS FEED ── */
+  .news-list { display: flex; flex-direction: column; gap: 10px; }
   .news-item {
-    padding: 13px 18px; border-bottom: 1px solid var(--border);
-    display: flex; gap: 14px; align-items: flex-start;
-    transition: background 0.15s;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
   }
-  .news-item:last-child { border-bottom: none; }
-  .news-item:hover { background: var(--surface2); }
-  .news-num {
-    font-family: var(--mono); font-size: 11px; color: var(--text-muted);
-    min-width: 20px; padding-top: 2px;
+  .news-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 5px;
+    flex-shrink: 0;
   }
-  .news-body { flex: 1; }
-  .news-headline { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.5; margin-bottom: 4px; }
-  .news-meta { display: flex; gap: 10px; align-items: center; }
+  .news-dot.red { background: var(--red); }
+  .news-dot.amber { background: var(--amber); }
+  .news-dot.green { background: var(--green); }
+  .news-content {}
+  .news-headline {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.5;
+  }
+  .news-meta {
+    font-size: 11px;
+    color: var(--muted);
+  }
   .news-source {
-    font-size: 10px; font-weight: 700; text-transform: uppercase;
-    color: var(--accent-blue); letter-spacing: 0.5px;
+    font-weight: 600;
+    color: var(--accent);
   }
-  .news-date { font-size: 10px; color: var(--text-muted); font-family: var(--mono); }
-  .news-tag { font-size: 9px; padding: 1px 6px; border-radius: 3px; }
-
-  /* ─── FOOTER ─── */
+  /* ── FOOTER ── */
   .footer {
-    border-top: 1px solid var(--border); padding: 18px 24px;
-    display: flex; flex-direction: column; gap: 6px;
     background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    text-align: center;
   }
-  .footer-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-  .footer-attr { font-size: 11px; color: var(--text-muted); }
-  .footer-attr a { color: var(--accent-blue); text-decoration: none; }
-  .footer-attr a:hover { text-decoration: underline; }
+  .footer-timestamp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .footer-attr {
+    font-size: 11px;
+    color: var(--muted);
+  }
   .footer-refresh {
-    font-family: var(--mono); font-size: 11px;
-    background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25);
-    color: var(--accent-cyan); padding: 4px 12px; border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(88,166,255,0.08);
+    border: 1px solid rgba(88,166,255,0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
   }
-  .disc {
-    font-size: 10px; color: var(--text-muted); line-height: 1.5;
-    padding: 10px 0 0; border-top: 1px solid var(--border); margin-top: 6px;
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 12px 0;
   }
-
-  /* ─── SECTION SPACER ─── */
-  .section-title {
-    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--text-muted); margin: 20px 0 10px; display: flex; align-items: center; gap: 8px;
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .ticker-item { min-width: 120px; padding: 8px 12px; }
+    .stats-strip { gap: 16px; padding: 10px 12px; }
+    .main-wrap { padding: 12px 8px 32px; }
+    .panel-body { padding: 12px 12px; }
+    .portfolio-grid { grid-template-columns: 1fr; }
   }
-  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-  /* ─── MISC ─── */
-  .highlight-green { color: var(--accent-green); font-weight: 600; }
-  .highlight-red { color: var(--accent-red); font-weight: 600; }
-  .highlight-amber { color: var(--accent-amber); font-weight: 600; }
-  .highlight-blue { color: var(--accent-blue); font-weight: 600; }
-  .mono-sm { font-family: var(--mono); font-size: 12px; }
-  .text-sm { font-size: 12px; }
-  .text-xs { font-size: 11px; }
-  .mt-8 { margin-top: 8px; }
-  .mt-12 { margin-top: 12px; }
-  .flex-between { display: flex; justify-content: space-between; align-items: center; }
-  .badge {
-    font-size: 9px; font-weight: 700; font-family: var(--mono);
-    padding: 2px 7px; border-radius: 3px; text-transform: uppercase;
-  }
-  .badge-mf { background: rgba(168,85,247,0.15); color: var(--accent-purple); border: 1px solid rgba(168,85,247,0.3); }
-  .badge-nps { background: rgba(6,182,212,0.15); color: var(--accent-cyan); border: 1px solid rgba(6,182,212,0.3); }
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════════
-     1. HEADER + TICKER STRIP
-     ══════════════════════════════════════════════════════════ -->
-<header class="header">
-  <div class="header-top">
-    <div class="brand">Tejas Jadhav <span>/ Daily Market Dashboard</span></div>
-    <div class="session-badge">⚡ PRE-MARKET — Thu Jun 4, 2026 · 08:30 IST</div>
-  </div>
-  <div class="ticker-strip">
-    <!-- Nifty 50 -->
-    <div class="tick">
-      <span class="tick-label">Nifty 50</span>
-      <span class="tick-val">23,405.60</span>
-      <span class="tick-chg dn">▼ 77.95 (−0.33%)</span>
+<!-- ══════════════════════════════════════════════════════════════════
+     1. HEADER / TICKER STRIP
+══════════════════════════════════════════════════════════════════ -->
+<div class="ticker-strip">
+  <div class="ticker-inner">
+    <div class="ticker-item">
+      <div class="ticker-label">Nifty 50</div>
+      <div class="ticker-value">23,366.70</div>
+      <div class="ticker-change down">▼ 49.85 (−0.21%) Jun 5 close</div>
     </div>
-    <!-- Sensex -->
-    <div class="tick">
-      <span class="tick-label">Sensex</span>
-      <span class="tick-val">74,346.17</span>
-      <span class="tick-chg dn">▼ 303 (−0.41%)</span>
+    <div class="ticker-item">
+      <div class="ticker-label">Sensex</div>
+      <div class="ticker-value">74,286</div>
+      <div class="ticker-change down">▼ 74 pts (−0.10%) Jun 5 close</div>
     </div>
-    <!-- BEL -->
-    <div class="tick">
-      <span class="tick-label">BEL</span>
-      <span class="tick-val">₹406.65</span>
-      <span class="tick-chg dn">▼ −1.15 (−0.28%)</span>
+    <div class="ticker-item">
+      <div class="ticker-label">BEL</div>
+      <div class="ticker-value">₹409.90</div>
+      <div class="ticker-change down">Jun 4 close · 52W H: ₹473</div>
     </div>
-    <!-- Brent Crude -->
-    <div class="tick">
-      <span class="tick-label">Brent</span>
-      <span class="tick-val">$97.17</span>
-      <span class="tick-chg dn">▼ −0.73 (−0.75%)</span>
+    <div class="ticker-item">
+      <div class="ticker-label">Brent Crude</div>
+      <div class="ticker-value">$95.41</div>
+      <div class="ticker-change up">↑ from $94.61 · Jun 5</div>
     </div>
-    <!-- USD/INR -->
-    <div class="tick">
-      <span class="tick-label">USD/INR</span>
-      <span class="tick-val">₹95.69</span>
-      <span class="tick-chg dn">▼ Weak Rupee</span>
+    <div class="ticker-item">
+      <div class="ticker-label">USD / INR</div>
+      <div class="ticker-value">₹94.95</div>
+      <div class="ticker-change down">▼ −0.84 (−0.88%) Jun 5</div>
     </div>
-    <!-- India VIX -->
-    <div class="tick">
-      <span class="tick-label">India VIX</span>
-      <span class="tick-val">~18.45</span>
-      <span class="tick-chg warn" style="color:var(--accent-amber);">▲ Elevated</span>
+    <div class="ticker-item">
+      <div class="ticker-label">India VIX</div>
+      <div class="ticker-value">15.79</div>
+      <div class="ticker-change down">▼ −0.10 (−0.61%) Jun 5 close</div>
     </div>
-  </div>
-</header>
-
-<!-- ══════════════════════════════════════════════════════════
-     2. MARKET SESSION MARQUEE
-     ══════════════════════════════════════════════════════════ -->
-<div class="marquee-bar">
-  <div class="marquee-inner">
-    <span>⚡ PRE-MARKET BRIEFING · THURSDAY JUNE 4, 2026 · NSE/BSE OPEN AT 09:15 IST</span>
-    <span class="sep">◆</span>
-    <span>GIFT NIFTY ~23,471 · GAP-DOWN OPEN INDICATED · NIFTY PREV CLOSE 23,405</span>
-    <span class="sep">◆</span>
-    <span>BRENT CRUDE ~$97 · HORMUZ REMAINS EFFECTIVELY CLOSED · CEASEFIRE UNDER STRAIN</span>
-    <span class="sep">◆</span>
-    <span>RBI MPC DECISION DAY — JUNE 5 ANNOUNCEMENT · RATE PAUSE WIDELY EXPECTED</span>
-    <span class="sep">◆</span>
-    <span>FII NET SELLERS — ₹24,109 CR OUTFLOW IN FIRST 2 DAYS OF JUNE · DII BUYING SUPPORT</span>
-    <span class="sep">◆</span>
-    <span>US HOUSE APPROVES WAR POWERS RESOLUTION TO HALT IRAN ACTION · KUWAITI AIRPORT HIT BY DRONES</span>
-    <span class="sep">◆</span>
-    <!-- repeat for seamless loop -->
-    <span>⚡ PRE-MARKET BRIEFING · THURSDAY JUNE 4, 2026 · NSE/BSE OPEN AT 09:15 IST</span>
-    <span class="sep">◆</span>
-    <span>GIFT NIFTY ~23,471 · GAP-DOWN OPEN INDICATED · NIFTY PREV CLOSE 23,405</span>
-    <span class="sep">◆</span>
-    <span>BRENT CRUDE ~$97 · HORMUZ REMAINS EFFECTIVELY CLOSED · CEASEFIRE UNDER STRAIN</span>
-    <span class="sep">◆</span>
-    <span>RBI MPC DECISION DAY — JUNE 5 ANNOUNCEMENT · RATE PAUSE WIDELY EXPECTED</span>
-    <span class="sep">◆</span>
-    <span>FII NET SELLERS — ₹24,109 CR OUTFLOW IN FIRST 2 DAYS OF JUNE · DII BUYING SUPPORT</span>
-    <span class="sep">◆</span>
-    <span>US HOUSE APPROVES WAR POWERS RESOLUTION TO HALT IRAN ACTION · KUWAITI AIRPORT HIT BY DRONES</span>
-    <span class="sep">◆</span>
+    <div class="ticker-item">
+      <div class="ticker-label">GIFT Nifty</div>
+      <div class="ticker-value">23,091</div>
+      <div class="ticker-change down">▼ −356 pts (−1.52%) Jun 6–7 overnight</div>
+    </div>
+    <div class="ticker-item">
+      <div class="ticker-label">Nasdaq</div>
+      <div class="ticker-value">25,709</div>
+      <div class="ticker-change down">▼ −4.18% · Worst day of year · Jun 5</div>
+    </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════
+<!-- ══════════════════════════════════════════════════════════════════
+     2. MARKET SESSION MARQUEE
+══════════════════════════════════════════════════════════════════ -->
+<div class="session-banner">
+  <div class="session-label">
+    ⚠️ PRE-MARKET — Monday 08 Jun 2026 &nbsp;|&nbsp; NSE/BSE opens 9:15 AM IST
+  </div>
+  <div class="session-meta">
+    🔴 SHARP GAP-DOWN EXPECTED &nbsp;·&nbsp; GIFT Nifty: 23,091 (−356 pts) &nbsp;·&nbsp; Wall St: Nasdaq −4.18% · S&P −2.64% · Dow −1.35% &nbsp;·&nbsp; Trigger: US NFP May beat → Fed higher-for-longer fears
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     3. STATS STRIP — OVERNIGHT CUES
+══════════════════════════════════════════════════════════════════ -->
+<div class="stats-strip">
+  <div class="stat-block">
+    <div class="stat-label">GIFT Nifty (pre-open)</div>
+    <div class="stat-value down">23,091</div>
+    <div class="stat-sub down">−356 pts | −1.52% | Gap-Down ~275 pts implied</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">USD/INR</div>
+    <div class="stat-value">₹94.95</div>
+    <div class="stat-sub up">Rupee gained vs USD on Jun 5; ~₹95.13 futures</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">Brent Crude</div>
+    <div class="stat-value">$95.41</div>
+    <div class="stat-sub down">Jun 5 close · 10-day high was $97.85 on Jun 3</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">India VIX</div>
+    <div class="stat-value">15.79</div>
+    <div class="stat-sub down">−0.61% on Jun 5 · Intraday low 13.46 (multi-week)</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">S&P 500</div>
+    <div class="stat-value down">7,383.74</div>
+    <div class="stat-sub down">−2.64% · Worst single-day drop this year</div>
+  </div>
+  <div class="stat-block">
+    <div class="stat-label">Nikkei 225 (last)</div>
+    <div class="stat-value">66,588</div>
+    <div class="stat-sub down">−882 pts · −1.31% · Jun 5</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
      MAIN CONTENT
-     ══════════════════════════════════════════════════════════ -->
-<div class="container">
+══════════════════════════════════════════════════════════════════ -->
+<div class="main-wrap">
 
-  <!-- ──────────────────────────────────────────────────
-       3. STATS STRIP — OVERNIGHT CUES
-       ────────────────────────────────────────────────── -->
-  <div class="section-title">Overnight Cues &amp; Pre-Market Indicators</div>
-  <div class="stats-strip">
-    <div class="stat-card" style="border-color: rgba(239,68,68,0.3);">
-      <div class="stat-label">GIFT Nifty (Pre-Open)</div>
-      <div class="stat-val dn">23,471</div>
-      <div class="stat-sub">−0.46% vs prev · Gap-down ~−90 pts vs Nifty close · Source: NDTV Business / Zerodha Pulse (11:15 PM)</div>
-    </div>
-    <div class="stat-card" style="border-color: rgba(239,68,68,0.3);">
-      <div class="stat-label">USD / INR</div>
-      <div class="stat-val dn">₹95.69</div>
-      <div class="stat-sub">Rupee under pressure · Near multi-month lows · Crude &amp; FII outflow driving weakness</div>
-    </div>
-    <div class="stat-card" style="border-color: rgba(245,158,11,0.3);">
-      <div class="stat-label">Brent Crude (Jun Fut)</div>
-      <div class="stat-val warn">$97.17</div>
-      <div class="stat-sub">Hormuz remains ~5% of normal capacity · Elevated but off $97+ high · BCA: re-escalation risk later in 2026</div>
-    </div>
-    <div class="stat-card" style="border-color: rgba(239,68,68,0.3);">
-      <div class="stat-label">India VIX</div>
-      <div class="stat-val dn">~18.45</div>
-      <div class="stat-sub">Elevated — volatile session yesterday · Fear premium intact · Watch RBI outcome Jun 5</div>
-    </div>
-  </div>
-
-  <!-- ──────────────────────────────────────────────────
-       4. SUMMARY INTELLIGENCE PANEL
-       ────────────────────────────────────────────────── -->
-  <div class="section-title">Summary Intelligence</div>
+  <!-- ── 4. SUMMARY INTELLIGENCE PANEL ── -->
   <div class="panel">
     <div class="panel-header">
-      <div class="panel-title"><span class="dot dot-blue"></span>Market Intelligence · Pre-Market Jun 4, 2026</div>
-      <div class="panel-tag tag-amber">CAUTIOUS</div>
+      <div class="panel-title"><span class="icon">🧠</span> Summary Intelligence — Pre-Market 08 Jun 2026</div>
+      <span class="panel-badge badge-red">BEARISH BIAS</span>
     </div>
-    <div class="intel-body">
-      <div class="intel-narrative">
-        Indian benchmark indices closed in the red on <strong>Wednesday, June 3</strong> after a highly volatile session. 
-        <strong>Nifty 50 settled at 23,405.60 (−77.95 pts, −0.33%)</strong> and the <strong>Sensex closed at 74,346.17 (−303 pts, −0.41%)</strong>. 
-        The market opened gap-down, tumbled sharply in early trade as fresh Gulf tensions and crude above $96 spooked investors — but a <strong>late-session banking-led recovery of ~900 Sensex points</strong> cushioned the blow. 
-        Market breadth stayed weak (Advance:Decline ~2:3). IT heavyweights TCS (−8.2%), Tech Mahindra (−6.4%), and Infosys (−3.9%) reversed the prior day's gains as profit-booking intensified. 
-        <br/><br/>
-        Heading into <strong>June 4</strong>, <strong>GIFT Nifty is hinting at a gap-down open (~23,471, −0.46%)</strong>, implying Nifty may open near <strong>23,310–23,330</strong> — below yesterday's close. 
-        The dominant macro headwinds remain: <strong>Hormuz Strait effectively closed</strong> (tanker traffic at ~5% of pre-conflict levels per UK House of Commons Library), <strong>Brent crude hovering near $97</strong>, a <strong>weak rupee at ₹95.69</strong>, and persistent <strong>FII outflows</strong> (₹24,109 cr in first two days of June alone per NSDL). 
-        The critical domestic event is the <strong>RBI MPC meeting (Jun 3–5)</strong> with the policy decision due <strong>Friday, June 5</strong>. 
-        A rate pause is consensus, but the tone on inflation — given elevated energy costs — may surprise hawkishly.
-        Global cues are mixed-to-negative: <strong>US stocks fell</strong> on June 3 (S&amp;P 500 −0.74%, Nasdaq −0.89%, Dow −1.21%) while the Nikkei surged +2.5%. 
-        Diplomatic noise intensified — the <strong>US House approved a War Powers resolution</strong> to halt Iran military action; Iran-backed drones reportedly hit Kuwait's airport, testing the ceasefire.
+    <div class="panel-body">
+      <div class="summary-text">
+        Indian equities head into Monday's open facing a <strong>sharp gap-down of ~275–350 points on Nifty 50</strong>, with GIFT Nifty sliding 356 pts (−1.52%) to 23,091 overnight — the clearest pre-market signal in weeks. The trigger is unambiguous: a stronger-than-expected US Non-Farm Payrolls report for May 2026, released after Friday's Indian market close, poured cold water on rate-cut hopes and sent Wall Street into a tailspin. The Nasdaq plunged 4.18% — its worst single-day performance in over a year — as AI and technology names that had been propping up global equity sentiment collapsed. The S&P 500 fell 2.64% and the Dow lost 1.35%. India VIX closed at 15.79 on Friday after touching an intraday low of 13.46, suggesting fear is re-entering the system.
+        <br /><br />
+        On the domestic front, Friday's session was a tale of two stories: the RBI MPC held the repo rate at 5.25% with a neutral stance — the most benign possible outcome for banking stocks, which surged to a Bank Nifty intraday high of 54,732 — but those gains were almost entirely surrendered by close as the Broadcom/tech rout and a strong US jobs print pressured sentiment globally. Nifty 50 closed at 23,366.70 (−0.21%) and Sensex at 74,286 (−0.10%), masking the volatility of a 400+ point intraday swing. The week shed ~0.77% for equities, extending the challenging FY27 narrative. Crude at $95.41/bbl remains a persistent inflation and CAD headwind for India.
+        <br /><br />
+        Geopolitical risk remains elevated: the Iran-US-Israel conflict is in a fragile ceasefire phase, but CENTCOM shot down four Iranian drones near the Strait of Hormuz on Jun 5, and Israel struck Beirut on Jun 7. The Hormuz shipping corridor remains effectively 5% of pre-war traffic levels. Any re-escalation can add 3–5% to Brent prices and hit Indian markets hard. On the positive side, May Services PMI hit a 6-month high and the RBI's neutral stance preserves room for future cuts if inflation allows.
       </div>
-
       <div class="my-view-box">
-        <div class="my-view-label">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          My View — Thursday June 4
-        </div>
+        <div class="my-view-title">📌 MY VIEW — Mon 08 Jun 2026 Pre-Market</div>
         <div class="my-view-text">
-          Gap-down open is baked in — GIFT Nifty at ~23,471 implies Nifty near <em>23,300–23,350</em> at open. 
-          Do NOT chase the gap. The zone of <em>23,125–23,225</em> (Singhvi's strong buy from Jun 3 reference) remains the key level to watch if selling accelerates. 
-          <em>RBI hawkish tone risk</em> is the wildcard for Friday — markets may reprice volatility ahead. 
-          BEL and defence names could face mild pressure as crude-related selling dominates, but structural order-book thesis intact. 
-          <em>HDFC Bank at ₹753</em> near 52-week low territory — selective accumulation only if market stabilises above 23,350 intraday. 
-          Overall stance: <em>DEFENSIVE, AVOID FRESH LONGS</em> until Nifty finds support and RBI clarity on June 5. 
-          Watch Bank Nifty (closed ~54,186) — its recovery from June 3 lows is the best internal positive; if it holds 53,500+, bulls retain a toehold.
+          <strong>Do not chase the gap-down — let the market find its floor.</strong> The Nifty 50 could open near 23,050–23,100; key support is the 23,150–23,000 band. A bounce from that zone is tradeable intraday, but any rally toward 23,400–23,500 is a sell-on-rise opportunity in the near term, given the Wall Street tech rout, high crude, and Iran-Hormuz tail risk. Banking stocks (HDFC Bank, SBI, ICICI) are relative outperformers post-RBI and may cushion the fall, but IT and tech names face renewed pressure. <strong>Strategy: Hold cash, avoid new longs at open, watch 23,150 as the critical line of defence — a close below triggers further downside toward 22,800–23,000.</strong> The week's key event is US Fed commentary and any Iran ceasefire progress.
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ──────────────────────────────────────────────────
-       5. IRAN-US CONFLICT GEOPOLITICAL PANEL
-       ────────────────────────────────────────────────── -->
-  <div class="section-title">Geopolitical Watch — Iran–US Conflict &amp; Strait of Hormuz</div>
+  <!-- ── 5. IRAN-US CONFLICT PANEL ── -->
   <div class="panel">
     <div class="panel-header">
-      <div class="panel-title"><span class="dot dot-red"></span>Iran–US Conflict · Hormuz Crisis · Day Counter</div>
-      <div class="panel-tag tag-red">ONGOING</div>
+      <div class="panel-title"><span class="icon">🌍</span> Iran–US–Israel Conflict &amp; Strait of Hormuz — Geopolitical Watch</div>
+      <span class="panel-badge badge-red">HIGH ALERT</span>
     </div>
     <div class="panel-body">
+      <div class="day-counter">⚔️ Conflict Day ~100 — since 28 Feb 2026 (Operation Epic Fury)</div>
       <div class="geo-grid">
-        <div class="geo-counter-block">
-          <div class="geo-day-counter">96</div>
-          <div class="geo-day-label">Days since<br/>Op. Epic Fury<br/>Feb 28, 2026</div>
-          <div style="margin-top:10px;">
-            <div class="geo-day-counter" style="font-size:18px; color: var(--accent-amber);">~5%</div>
-            <div class="geo-day-label">Hormuz traffic<br/>vs pre-conflict</div>
+        <div class="geo-card">
+          <div class="geo-card-title">🛡️ Latest 24–48h Incidents</div>
+          <div class="geo-card-text">
+            <strong>Jun 7 (Sunday):</strong> Israeli forces struck Hezbollah targets in Beirut's Dahiyeh suburb, in response to Hezbollah firing missiles into northern Israel. First responders reported casualties in the strikes (ABC News, Jun 7). Iran accused the US of violating the ceasefire; peace talks described as "at a deadlock" (CBS News, Jun 7).
+            <br /><br />
+            <strong>Jun 5 (Friday):</strong> CENTCOM confirmed US forces shot down four Iranian one-way attack drones launched toward the Strait of Hormuz, saying they "posed an immediate threat to regional maritime traffic." In retaliation, CENTCOM struck Iranian coastal surveillance radar sites in Goruk and Qeshm Island (ABC7 / CBS News, Jun 5). Separately, seven ballistic missiles fired at Kuwait and Bahrain were largely intercepted.
           </div>
         </div>
-        <div class="geo-narrative">
-          The US–Israel–Iran war that began on <strong>February 28, 2026</strong> (Operation Epic Fury) has now entered its <strong>fourth month</strong>, with the Strait of Hormuz remaining effectively closed. 
-          A conditional ceasefire agreed in early April has been repeatedly tested, with Iran continuing to attack commercial vessels and US forces conducting retaliatory strikes.
-          <br/><br/>
-
-          <div class="event-line">
-            <span class="evt-date">Jun 3, 2026 (AP/Britannica) —</span> <strong>US House of Representatives approved a War Powers resolution</strong> to halt US military action against Iran, representing a significant congressional rebuke of the Trump administration's Iran policy. This is the most significant domestic US political development in the conflict so far.
+        <div class="geo-card">
+          <div class="geo-card-title">🚢 Strait of Hormuz Status</div>
+          <div class="geo-card-text">
+            The Strait remains <strong>effectively closed</strong> — shipping traffic is at roughly 5% of pre-war levels (House of Commons Library). Iran's IRGC continues to assert control; war-risk insurance premiums keep most commercial shipping away. Some vessels from China, Iraq, and Pakistan have transited via diplomatic arrangements with Iran. The IAEA's Rafael Grossi indicated preliminary nuclear framework discussions may be progressing, but access for inspectors remains inconsistent (ABC7, Jun 5).
+            <br /><br />
+            <strong>Market impact:</strong> Brent crude at $95.41 (Jun 5), with a 10-day range of $92–$97.85. India imports ~85% of crude; CAD pressure and rupee weakness remain active themes. Any re-escalation toward $100+ Brent would be a direct negative for Indian equities and monetary policy space.
           </div>
-          <div class="event-line">
-            <span class="evt-date">Jun 3, 2026 (AP/Britannica) —</span> <strong>Kuwait reported that Iranian drones hit its airport, killing one person</strong>, testing the ceasefire once again. The Kuwaiti military said air defense systems were "confronting hostile missile and drone attacks."
+        </div>
+        <div class="geo-card">
+          <div class="geo-card-title">🕊️ Diplomatic Situation</div>
+          <div class="geo-card-text">
+            A conditional, open-ended ceasefire remains in place (extended from the initial 2-week deal). US-Iran indirect talks are stalled — an Iranian official told CNN negotiations are "at a deadlock" and the US needs to unfreeze Iranian assets to move forward. Trump has expressed optimism that Iran "wants a deal" but no agreement has been reached (CBS News). Trump also said the Iran war is "largely finished," adding it could wrap up in "a more difficult way" than with negotiations.
+            <br /><br />
+            <strong>Key watch:</strong> Any ceasefire progress or Hormuz re-opening announcement would be a sharp positive catalyst for Indian markets — crude could drop $5–10/bbl and trigger a rally. Conversely, fresh escalation is the primary tail risk for the week.
           </div>
-          <div class="event-line">
-            <span class="evt-date">Jun 3, 2026 (Britannica/AP) —</span> Oil prices climbed back toward $100 as US stocks halted their rally amid the fresh Gulf escalation. Disruption of Mideast energy supplies through next year would "slam the global economy," per an IMF-linked report.
-          </div>
-          <div class="event-line">
-            <span class="evt-date">Ongoing (House of Commons Library) —</span> <strong>Hormuz: Shipping remains at ~5% of pre-conflict volume.</strong> The UK and France are leading a multinational maritime coalition. The EU proposes assigning naval mission ASPIDES a role in mine-clearing "when conditions allow." Iran has reportedly lost track of some mines it planted.
-          </div>
-          <div class="event-line">
-            <span class="evt-date">Jun 2, 2026 (RFE/RL) —</span> <strong>US Secretary Rubio</strong> called on China to endorse a UN resolution for freedom of navigation through Hormuz. China continues to threaten a veto; Russia also blocked a prior Bahrain-drafted resolution in April.
-          </div>
-
-          <br/>
-          <strong>India angle:</strong> India welcomed the ceasefire earlier but is acutely exposed — Hormuz closure has pushed crude above $97, weakened the rupee to near ₹97 highs, and elevated energy import costs. 
-          RBI is navigating the tightest monetary policy call in years — a pause is expected Friday but a hawkish tilt on inflation is possible. 
-          BCA Research warns the Iran war is "likely to re-escalate later this year" even if partial shipping resumes. 
-          <span class="highlight-red">India VIX remains elevated; risk-off posture warranted until ceasefire becomes durable.</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ──────────────────────────────────────────────────
-       6. ANIL SINGHVI EXPERT VIEW
-       ────────────────────────────────────────────────── -->
-  <div class="section-title">Expert View — Anil Singhvi, Zee Business</div>
+  <!-- ── 6. ANIL SINGHVI EXPERT VIEW ── -->
   <div class="panel">
     <div class="panel-header">
-      <div class="panel-title"><span class="dot dot-amber"></span>Anil Singhvi Market Strategy</div>
-      <div class="panel-tag tag-amber">ZEE BUSINESS · MANAGING EDITOR</div>
+      <div class="panel-title"><span class="icon">📊</span> Anil Singhvi — Pre-Market Expert View</div>
+      <span class="panel-badge badge-amber">ZEE BUSINESS · MANAGING EDITOR</span>
     </div>
     <div class="panel-body">
-      <!-- NOTE: Jun 4 specific levels not published yet at 8:30 AM; using Jun 3 published levels as reference context -->
-      <div style="background: rgba(245,158,11,0.07); border: 1px solid rgba(245,158,11,0.2); border-radius:8px; padding: 10px 14px; margin-bottom:14px; font-size: 12px; color: var(--accent-amber);">
-        ⚠️ <strong>Note:</strong> Singhvi's specific levels for <em>Thursday June 4</em> had not been published at time of this 08:30 IST briefing. The levels shown below are from his <strong>Wednesday June 3 strategy</strong> published on Zee Business, provided for reference context. Check <a href="https://zeebiz.com" style="color:var(--accent-blue);" target="_blank">zeebiz.com</a> for updated Jun 4 levels when available.
-      </div>
       <div class="singhvi-grid">
-        <div class="level-block">
-          <div class="level-block-title">Nifty 50 — Jun 3 Reference Levels</div>
-          <div class="level-row"><span class="level-name">Support Zone</span><span class="level-num support">23,275 – 23,375</span></div>
-          <div class="level-row"><span class="level-name">Strong Buy Zone</span><span class="level-num buy">23,125 – 23,225</span></div>
-          <div class="level-row"><span class="level-name">Higher Zone (Resistance)</span><span class="level-num resist">23,550 – 23,675</span></div>
-          <div class="level-row"><span class="level-name">Strong Sell Zone</span><span class="level-num sell">23,700 – 23,850</span></div>
-          <div class="level-row"><span class="level-name">Stop Loss (intraday &amp; closing)</span><span class="level-num" style="color:var(--accent-amber);">23,350</span></div>
+        <div class="level-card">
+          <div class="level-card-label">Nifty 50 — Support Zone</div>
+          <div class="level-card-value down">23,150 – 23,275</div>
+          <div class="level-card-sub">Strong buy zone: 23,000 – 23,125</div>
         </div>
-        <div class="level-block">
-          <div class="level-block-title">Nifty Bank — Jun 3 Reference Levels</div>
-          <div class="level-row"><span class="level-name">Support Zone</span><span class="level-num support">53,150 – 53,450</span></div>
-          <div class="level-row"><span class="level-name">Strong Buy Zone</span><span class="level-num buy">52,600 – 52,850</span></div>
-          <div class="level-row"><span class="level-name">Higher Zone (Resistance)</span><span class="level-num resist">53,925 – 54,175</span></div>
-          <div class="level-row"><span class="level-name">Strong Sell Zone</span><span class="level-num sell">54,325 – 54,600</span></div>
-          <div class="level-row"><span class="level-name">Bank Nifty Jun 3 Close</span><span class="level-num" style="color:var(--text-primary);">54,185.95</span></div>
+        <div class="level-card">
+          <div class="level-card-label">Nifty 50 — Higher Zone / Resistance</div>
+          <div class="level-card-value up">23,450 – 23,550</div>
+          <div class="level-card-sub">Profit-booking zone: 23,600 – 23,750</div>
+        </div>
+        <div class="level-card">
+          <div class="level-card-label">Nifty Bank — Support Zone</div>
+          <div class="level-card-value down">53,475 – 53,650</div>
+          <div class="level-card-sub">Strong buy zone: 53,025 – 53,200</div>
+        </div>
+        <div class="level-card">
+          <div class="level-card-label">Nifty Bank — Higher Zone / Resistance</div>
+          <div class="level-card-value up">54,300 – 54,600</div>
+          <div class="level-card-sub">Profit-booking zone: 54,750 – 54,975</div>
         </div>
       </div>
       <div class="singhvi-stance">
-        <strong>Singhvi's Stance (Jun 3, as referenced):</strong> The market wizard flagged <strong>23,275–23,375 as immediate Nifty support</strong> and the <strong>23,125–23,225 band as a strong buy zone</strong> for aggressive traders. 
-        Given the GIFT Nifty is signalling a gap-down open near 23,300–23,350 today, the market is expected to open right at or just above his support zone. 
-        He had set <strong>intraday and closing stop loss at 23,350</strong> for existing long positions. 
-        The Bank Nifty's late-session recovery on Jun 3 to 54,185 is above his higher zone — a positive signal if sustained. 
-        Watch the first 30-minute candle closely for direction.
-        <div class="singhvi-attr">Source: Zee Business (zeebiz.com) — Anil Singhvi is <strong>Managing Editor at Zee Business / Zee News</strong>. Levels published June 3, 2026. Jun 4 levels to be verified on zeebiz.com at market open.</div>
+        <strong>Stance (based on Jun 4 published levels, Zee Business):</strong> Singhvi sees the market in a cautious, range-bound mode. For Nifty, the critical floor is the 23,150–23,275 zone — a decisive close below 23,000 would signal fresh weakness. On the upside, 23,450–23,550 is a sell zone. For Bank Nifty, 53,025–53,200 is the strong buy area, while 54,750 is where profit-booking kicks in. Given Monday's expected gap-down toward 23,050–23,100, traders should watch whether the 23,150 support holds at the open — if it does, a bounce trade is possible; if not, wait for 23,000.
+      </div>
+      <div class="attribution-note">
+        ⚠️ Note: Specific Singhvi pre-market levels for Mon 08 Jun 2026 were not available at dashboard generation time (05:46 IST — Zee Business broadcast typically airs 8:30–9:15 AM). Levels above are from his most recent available publication (Jun 4, 2026 — Zee Business). Verify live levels on <a href="https://www.zeebiz.com/topics/anil-singhvi" target="_blank">zeebiz.com</a> before market open. Anil Singhvi is Managing Editor at Zee Business / Zee News — not affiliated with Emkay Global or any brokerage.
       </div>
     </div>
   </div>
 
-  <!-- ──────────────────────────────────────────────────
-       7. PORTFOLIO HOLDING CARDS
-       ────────────────────────────────────────────────── -->
-  <div class="section-title">Portfolio Holdings — Pre-Market View</div>
-  <div class="port-grid">
-
-    <!-- BEL -->
-    <div class="port-card" style="border-top: 3px solid var(--accent-blue);">
-      <div class="port-card-header">
-        <div>
-          <div class="port-ticker">BEL</div>
-          <div class="port-name">Bharat Electronics Ltd</div>
-        </div>
-        <div class="panel-tag tag-blue">NSE</div>
-      </div>
-      <div class="port-card-body">
-        <div class="port-price">₹406.65 <span>Jun 3 close</span></div>
-        <div class="port-chg dn">▼ −1.15 (−0.28%) · 52W: ₹361–₹473</div>
-        <hr class="port-divider"/>
-        <div class="port-view-label">Pre-Market My View</div>
-        <div class="port-view-action action-hold">HOLD · ADD ON DIP</div>
-        <div class="port-view-rationale">Gap-down open likely; watch ₹395–₹400 support. FY26 revenue +16%, order book ₹73,882 cr (Apr 2026). Defence theme structurally intact. Add below ₹395; trim only above ₹440.</div>
-      </div>
-    </div>
-
-    <!-- DATAPATT -->
-    <div class="port-card" style="border-top: 3px solid var(--accent-purple);">
-      <div class="port-card-header">
-        <div>
-          <div class="port-ticker">DATAPATT</div>
-          <div class="port-name">Data Patterns (India)</div>
-        </div>
-        <div class="panel-tag tag-purple">NSE</div>
-      </div>
-      <div class="port-card-body">
-        <div class="port-price">~₹4,043 <span>~May 30 close</span></div>
-        <div class="port-chg neu">— Jun 3 price pending confirmation · 52W: ₹2,131–₹4,303</div>
-        <hr class="port-divider"/>
-        <div class="port-view-label">Pre-Market My View</div>
-        <div class="port-view-action action-hold">HOLD</div>
-        <div class="port-view-rationale">Defence electronics upcycle intact. Goldman Sachs Buy (₹4,165 target), Jefferies Buy (₹4,500). Q4 FY26 profit +21%. Watch ₹3,900 for add opportunity on broad market weakness.</div>
-      </div>
-    </div>
-
-    <!-- POLYCAB -->
-    <div class="port-card" style="border-top: 3px solid var(--accent-cyan);">
-      <div class="port-card-header">
-        <div>
-          <div class="port-ticker">POLYCAB</div>
-          <div class="port-name">Polycab India Ltd</div>
-        </div>
-        <div class="panel-tag tag-blue" style="background:rgba(6,182,212,0.15);color:var(--accent-cyan);border-color:rgba(6,182,212,0.3);">NSE</div>
-      </div>
-      <div class="port-card-body">
-        <div class="port-price">~₹7,910 <span>Jun 3 session range low</span></div>
-        <div class="port-chg neu">Session range ₹7,910–₹8,188 · 52W: ₹5,245–₹8,722</div>
-        <hr class="port-divider"/>
-        <div class="port-view-label">Pre-Market My View</div>
-        <div class="port-view-action action-accum">ACCUMULATE</div>
-        <div class="port-view-rationale">Wire &amp; cable demand underpinned by infra capex. +54% 1-year return demonstrates strength. Hold above ₹7,800. Add on dips near ₹7,700–₹7,800 if market corrects further.</div>
-      </div>
-    </div>
-
-    <!-- GOLDIAM -->
-    <div class="port-card" style="border-top: 3px solid var(--accent-amber);">
-      <div class="port-card-header">
-        <div>
-          <div class="port-ticker">GOLDIAM</div>
-          <div class="port-name">Goldiam International</div>
-        </div>
-        <div class="panel-tag tag-amber">NSE</div>
-      </div>
-      <div class="port-card-body">
-        <div class="port-price">~₹391 <span>~May 22–24 close</span></div>
-        <div class="port-chg neu">Jun 3 price data pending · 52W: ₹265–₹449</div>
-        <hr class="port-divider"/>
-        <div class="port-view-label">Pre-Market My View</div>
-        <div class="port-view-action action-hold">HOLD</div>
-        <div class="port-view-rationale">Gold prices elevated on safe-haven demand (geopolitical risk premium). Lab-grown diamond retail expansion ongoing (23 stores, Apr 2026). Q3 profit +38% YoY. Watch export order flow. Hold above ₹370.</div>
-      </div>
-    </div>
-
-    <!-- HDFC BANK -->
-    <div class="port-card" style="border-top: 3px solid var(--accent-green);">
-      <div class="port-card-header">
-        <div>
-          <div class="port-ticker">HDFCBANK</div>
-          <div class="port-name">HDFC Bank Ltd</div>
-        </div>
-        <div class="panel-tag tag-green">NSE</div>
-      </div>
-      <div class="port-card-body">
-        <div class="port-price">₹753.65 <span>Jun 3 close</span></div>
-        <div class="port-chg up">▲ +5.45 (+0.73%) · 52W: ₹726–₹1,021</div>
-        <hr class="port-divider"/>
-        <div class="port-view-label">Pre-Market My View</div>
-        <div class="port-view-action action-accum">ACCUMULATE</div>
-        <div class="port-view-rationale">Near 52-week lows. Bank Nifty recovered strongly Jun 3 (+471 pts). RBI decision Jun 5 — rate pause likely positive for credit growth outlook. Q1 FY27 earnings Jul 20. Add in tranches below ₹750; SL ₹726.</div>
-      </div>
-    </div>
-
-    <!-- HDFC AMC -->
-    <div class="port-card" style="border-top: 3px solid var(--accent-orange);">
-      <div class="port-card-header">
-        <div>
-          <div class="port-ticker">HDFCAMC</div>
-          <div class="port-name">HDFC Asset Management Co.</div>
-        </div>
-        <div class="panel-tag tag-amber" style="background:rgba(249,115,22,0.15);color:var(--accent-orange);border-color:rgba(249,115,22,0.3);">NSE</div>
-      </div>
-      <div class="port-card-body">
-        <div class="port-price">~₹5,340 <span>last known level</span></div>
-        <div class="port-chg neu">Jun 3 close data pending confirmation · Watch SIP flow data</div>
-        <hr class="port-divider"/>
-        <div class="port-view-label">Pre-Market My View</div>
-        <div class="port-view-action action-hold">HOLD</div>
-        <div class="port-view-rationale">India equity SIP flows structurally strong. AMC business model resilient even in volatile markets. Nuvama maintained Buy (₹6,530 target). Hold; no fresh add until markets stabilise post-RBI.</div>
-      </div>
-    </div>
-
-    <!-- MUTUAL FUNDS -->
-    <div class="port-card" style="border-top: 3px solid var(--accent-purple);">
-      <div class="port-card-header">
-        <div>
-          <div class="port-ticker">MF HOLDINGS</div>
-          <div class="port-name">HDFC Defence / Multi-cap</div>
-        </div>
-        <span class="badge badge-mf">MUTUAL FUND</span>
-      </div>
-      <div class="port-card-body">
-        <div class="port-price" style="font-size:16px;">NAV Pending</div>
-        <div class="port-chg neu">NAV declared post-market close · Check AMFI post 11 PM</div>
-        <hr class="port-divider"/>
-        <div class="port-view-label">Pre-Market My View</div>
-        <div class="port-view-action action-hold">HOLD · SIP CONTINUE</div>
-        <div class="port-view-rationale">HDFC Defence Fund — benefits from elevated geopolitical risk; defence spending tailwind intact. Multi-cap — broad market volatility may push NAV lower near-term. Continue SIPs; do not redeem in panic.</div>
-      </div>
-    </div>
-
-    <!-- NPS -->
-    <div class="port-card" style="border-top: 3px solid var(--accent-cyan);">
-      <div class="port-card-header">
-        <div>
-          <div class="port-ticker">NPS</div>
-          <div class="port-name">National Pension System</div>
-        </div>
-        <span class="badge badge-nps">LONG TERM</span>
-      </div>
-      <div class="port-card-body">
-        <div class="port-price" style="font-size:16px;">Long-Term Hold</div>
-        <div class="port-chg neu">Equity NAV linked to Nifty 50 performance · No intraday view</div>
-        <hr class="port-divider"/>
-        <div class="port-view-label">Pre-Market My View</div>
-        <div class="port-view-action action-hold">HOLD · NO ACTION</div>
-        <div class="port-view-rationale">NPS equity corpus benefits from market dips via rupee-cost averaging. Current market weakness near 23,400 Nifty is a DCA opportunity over the long run. No action warranted; stay invested per allocation.</div>
-      </div>
-    </div>
-
-  </div><!-- /port-grid -->
-
-  <!-- ──────────────────────────────────────────────────
-       8. NEWS FEED
-       ────────────────────────────────────────────────── -->
-  <div class="section-title">Market &amp; Macro News — Last 24 Hours</div>
+  <!-- ── 7. PORTFOLIO HOLDING CARDS ── -->
   <div class="panel">
     <div class="panel-header">
-      <div class="panel-title"><span class="dot dot-green"></span>Verified News Feed</div>
-      <div class="panel-tag tag-green">LAST 24H · VERIFIED SOURCES</div>
+      <div class="panel-title"><span class="icon">💼</span> Portfolio Holdings — Pre-Market View</div>
+      <span class="panel-badge badge-amber">PRICES: LAST NSE CLOSE · NOT LIVE</span>
     </div>
-    <div class="news-list">
+    <div class="panel-body">
+      <div class="portfolio-grid">
 
-      <div class="news-item">
-        <div class="news-num">01</div>
-        <div class="news-body">
-          <div class="news-headline">US House Passes War Powers Resolution to Halt Iran Military Action — Direct Rebuke of Trump Administration</div>
-          <div class="news-meta">
-            <span class="news-source">AP / Britannica</span>
-            <span class="news-date">Jun 3, 2026</span>
-            <span class="news-tag tag-red">GEOPOLITICAL</span>
+        <!-- BEL -->
+        <div class="stock-card">
+          <div class="stock-card-header">
+            <div>
+              <div class="stock-name">Bharat Electronics Ltd</div>
+              <div class="stock-ticker">NSE: BEL · Defence PSU · Navratna</div>
+            </div>
+            <div class="stock-price-block">
+              <div class="stock-price">₹409.90</div>
+              <div class="stock-change flat">Jun 4 close</div>
+            </div>
+          </div>
+          <div class="stock-card-body">
+            <div class="stock-meta">
+              52W Range: ₹361.20 – ₹473.45 &nbsp;·&nbsp; Mkt Cap: ₹2,99,628 Cr<br />
+              FY26: Revenue +16% YoY ₹27,610 Cr · PAT +14% ₹6,062 Cr · Order book ₹73,882 Cr (Apr 1)<br />
+              Recent order wins: ₹608 Cr (May 25); Q4 FY26 PAT +4.62% YoY ₹2,225 Cr
+            </div>
+            <div class="my-view-line">
+              <span class="action-hold">HOLD · ADD ON DIP</span> — Gap-down open expected; BEL likely to slip toward ₹395–400. Add below ₹400 for medium term; defence theme intact with strong order book (₹73,882 Cr). Await break above ₹430 for momentum re-entry.
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="news-item">
-        <div class="news-num">02</div>
-        <div class="news-body">
-          <div class="news-headline">Kuwait Reports Iranian Drones Hit Airport, Kills 1 — Ceasefire Under Fresh Test; CENTCOM Intercepts Drone Waves</div>
-          <div class="news-meta">
-            <span class="news-source">AP / RFE/RL</span>
-            <span class="news-date">Jun 3, 2026</span>
-            <span class="news-tag tag-red">GEOPOLITICAL</span>
+        <!-- DATA PATTERNS -->
+        <div class="stock-card">
+          <div class="stock-card-header">
+            <div>
+              <div class="stock-name">Data Patterns (India) Ltd</div>
+              <div class="stock-ticker">NSE: DATAPATT · Defence Electronics</div>
+            </div>
+            <div class="stock-price-block">
+              <div class="stock-price pending-tag">Pending</div>
+              <div class="stock-change flat">Live price n/a pre-market</div>
+            </div>
+          </div>
+          <div class="stock-card-body">
+            <div class="stock-meta">
+              Defence electronics — embedded systems, avionics, radar. Small-cap, high beta.<br />
+              Closely tracks BEL and broader defence theme sentiment.
+            </div>
+            <div class="my-view-line">
+              <span class="action-wait">WAIT</span> — Sharp gap-down likely given Nifty futures signal and global risk-off. High-beta defence smallcap likely to see exaggerated selling at open. Wait for price discovery post 9:30 AM before adding; re-enter near established support levels.
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="news-item">
-        <div class="news-num">03</div>
-        <div class="news-body">
-          <div class="news-headline">Nifty 50 Settles at 23,405 (−78 pts), Sensex Falls 303 pts; IT Stocks Reverse Tuesday Gains — TCS −8.2%, Tech Mahindra −6.4%</div>
-          <div class="news-meta">
-            <span class="news-source">Upstox / NSE</span>
-            <span class="news-date">Jun 3, 2026</span>
-            <span class="news-tag tag-red">MARKETS</span>
+        <!-- POLYCAB -->
+        <div class="stock-card">
+          <div class="stock-card-header">
+            <div>
+              <div class="stock-name">Polycab India Ltd</div>
+              <div class="stock-ticker">NSE: POLYCAB · Wires &amp; Cables</div>
+            </div>
+            <div class="stock-price-block">
+              <div class="stock-price">₹9,730</div>
+              <div class="stock-change up">Jun 4 close (52W H: ₹9,750)</div>
+            </div>
+          </div>
+          <div class="stock-card-body">
+            <div class="stock-meta">
+              52W Range: ₹5,760 – ₹9,750 &nbsp;·&nbsp; +60% in 1 year<br />
+              Q4 FY26: Revenue +26.9% YoY ₹8,864 Cr · PAT ₹773 Cr · FY26 PAT +32% YoY<br />
+              50-DMA: ₹8,262 · 200-DMA: ₹7,673 · FY26 dividend: ₹47/share
+            </div>
+            <div class="my-view-line">
+              <span class="action-hold">HOLD · TRIM PARTIAL AT OPEN</span> — Near 52W high at ₹9,750; gap-down may test ₹9,400–9,500 zone. Consider booking 15–20% of position near open if below ₹9,600. Re-accumulate near ₹9,000–9,200 (50-DMA buffer). Fundamentals excellent; long-term hold intact.
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="news-item">
-        <div class="news-num">04</div>
-        <div class="news-body">
-          <div class="news-headline">RBI MPC Meeting Begins (Jun 3–5); Policy Decision Due June 5 — Rate Pause Expected But Hawkish Tone on Inflation Possible</div>
-          <div class="news-meta">
-            <span class="news-source">Upstox / NDTV Business</span>
-            <span class="news-date">Jun 3, 2026</span>
-            <span class="news-tag tag-amber">POLICY</span>
+        <!-- GOLDIAM -->
+        <div class="stock-card">
+          <div class="stock-card-header">
+            <div>
+              <div class="stock-name">Goldiam International Ltd</div>
+              <div class="stock-ticker">NSE: GOLDIAM · Lab-Grown Diamond / Jewellery</div>
+            </div>
+            <div class="stock-price-block">
+              <div class="stock-price pending-tag">Pending</div>
+              <div class="stock-change flat">Jun 5 close n/a from search</div>
+            </div>
+          </div>
+          <div class="stock-card-body">
+            <div class="stock-meta">
+              Q4 FY25 PAT +37.52% YoY · Q3 FY26 PAT +41.64% YoY<br />
+              Expanding retail — 23+ ORIGEM lab-grown diamond stores (latest: Apr 13, 2026)<br />
+              Gold prices remain elevated globally; US jewellery export exposure
+            </div>
+            <div class="my-view-line">
+              <span class="action-hold">HOLD</span> — Gold prices elevated; lab-grown diamond retail expansion story intact. High weekly volatility (11% vs market). In a gap-down day, avoid adding; let price settle. Watch for any US export order or Q4 FY26 results announcement as catalyst.
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="news-item">
-        <div class="news-num">05</div>
-        <div class="news-body">
-          <div class="news-headline">FIIs Sell ₹24,109 Crore in First Two Days of June 2026; FPIs Net Outflow for 2026 Now Exceeds $26.4 Billion — Record Annual Pace</div>
-          <div class="news-meta">
-            <span class="news-source">NSDL / Upstox</span>
-            <span class="news-date">Jun 3, 2026</span>
-            <span class="news-tag tag-red">FII FLOWS</span>
+        <!-- HDFC BANK -->
+        <div class="stock-card">
+          <div class="stock-card-header">
+            <div>
+              <div class="stock-name">HDFC Bank Ltd</div>
+              <div class="stock-ticker">NSE: HDFCBANK · Private Sector Bank</div>
+            </div>
+            <div class="stock-price-block">
+              <div class="stock-price">₹747.05</div>
+              <div class="stock-change down">Jun 5 close · 52W L: ₹726.65</div>
+            </div>
+          </div>
+          <div class="stock-card-body">
+            <div class="stock-meta">
+              52W Range: ₹726.65 – ₹1,020.50 &nbsp;·&nbsp; −26.8% from 52W high<br />
+              Q4 FY26: Net profit +8.05% YoY ₹20,351 Cr · Dividend ₹13/share<br />
+              Mkt Cap: ₹11,50,281 Cr · PE: 15.41x · MF Holding: 29.54%
+            </div>
+            <div class="my-view-line">
+              <span class="action-acc">ACCUMULATE</span> — RBI's 5.25% neutral hold is structurally positive for HDFC Bank. Near 52W lows; risk-reward attractive at ₹726–750 range. Gap-down may offer entry near ₹730–735. Credit growth story intact. Patient investors can SIP/accumulate.
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="news-item">
-        <div class="news-num">06</div>
-        <div class="news-body">
-          <div class="news-headline">BCA Research Warns Iran War "Likely to Re-Escalate Later This Year"; US Blockade on Hormuz Threatens Oil Prices to $140 — Investing.com</div>
-          <div class="news-meta">
-            <span class="news-source">Investing.com / BCA Research</span>
-            <span class="news-date">Jun 4, 2026</span>
-            <span class="news-tag tag-amber">ENERGY / GEOPOLITICAL</span>
+        <!-- HDFC AMC -->
+        <div class="stock-card">
+          <div class="stock-card-header">
+            <div>
+              <div class="stock-name">HDFC AMC Ltd</div>
+              <div class="stock-ticker">NSE: HDFCAMC · Asset Management</div>
+            </div>
+            <div class="stock-price-block">
+              <div class="stock-price">₹2,538</div>
+              <div class="stock-change down">Jun 4 close · 52W H: ₹2,967</div>
+            </div>
+          </div>
+          <div class="stock-card-body">
+            <div class="stock-meta">
+              52W Range: ₹2,205.60 – ₹2,967.25 &nbsp;·&nbsp; −14.5% from 52W high<br />
+              FY26: Revenue +16.56% YoY · Q4 PAT ₹623 Cr (−2.42% YoY)<br />
+              ⚠️ Cyber-security incident disclosed (May 16); assessment ongoing, no material impact stated<br />
+              Record date for ₹54 dividend: Jun 17, 2026
+            </div>
+            <div class="my-view-line">
+              <span class="action-hold">HOLD</span> — Cyber incident an overhang; monitor for updates. Dividend record date Jun 17 provides near-term floor. Gap-down likely to ₹2,450–2,490. Hold existing position; avoid fresh additions until cyber-incident assessment is concluded.
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="news-item">
-        <div class="news-num">07</div>
-        <div class="news-body">
-          <div class="news-headline">BEL FY26 Revenue +16% to ₹27,480 Cr; PAT ₹6,048 Cr; Order Book at ₹73,882 Cr as of April 1, 2026 — Q4 Earnings Call Transcript</div>
-          <div class="news-meta">
-            <span class="news-source">NSE Filings / Screener / Tickertape</span>
-            <span class="news-date">May–Jun 2026</span>
-            <span class="news-tag tag-blue">RESULTS</span>
+        <!-- MUTUAL FUNDS -->
+        <div class="stock-card">
+          <div class="stock-card-header">
+            <div>
+              <div class="stock-name">Mutual Funds</div>
+              <div class="stock-ticker">HDFC Defence Fund · HDFC Multi-Cap Fund</div>
+            </div>
+            <div class="stock-price-block">
+              <div class="stock-price pending-tag">NAV pending</div>
+              <div class="stock-change flat">NAV declared after market hours</div>
+            </div>
+          </div>
+          <div class="stock-card-body">
+            <div class="stock-meta">
+              HDFC Defence Fund: Sector-specific · BEL, HAL, GRSE exposure<br />
+              HDFC Multi-Cap: Diversified · Spread across large/mid/small cap
+            </div>
+            <div class="my-view-line">
+              <span class="action-hold">HOLD SIP · DO NOT REDEEM</span> — Expect Mon's NAV to reflect gap-down impact. Defence fund may underperform slightly (BEL weak). Multi-cap absorbs via diversification. Continue SIP — gap-downs are accumulation opportunities in systematic investing.
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="news-item">
-        <div class="news-num">08</div>
-        <div class="news-body">
-          <div class="news-headline">EU Proposes ASPIDES Naval Mission for Hormuz Mine Clearing; UK-France Lead Coalition — Unanimous EU Approval Required</div>
-          <div class="news-meta">
-            <span class="news-source">RFE/RL (citing Reuters/EEAS note)</span>
-            <span class="news-date">Jun 3–4, 2026</span>
-            <span class="news-tag tag-red">HORMUZ / SHIPPING</span>
+        <!-- NPS -->
+        <div class="stock-card">
+          <div class="stock-card-header">
+            <div>
+              <div class="stock-name">NPS (National Pension System)</div>
+              <div class="stock-ticker">Long-Term Retirement Allocation</div>
+            </div>
+            <div class="stock-price-block">
+              <div class="stock-price pending-tag">NAV pending</div>
+              <div class="stock-change flat">Updated post-market</div>
+            </div>
+          </div>
+          <div class="stock-card-body">
+            <div class="stock-meta">
+              Equity component tracks Nifty 50 / broad market<br />
+              Government bonds component benefits from RBI rate hold at 5.25%
+            </div>
+            <div class="my-view-line">
+              <span class="action-hold">HOLD · LONG-TERM VIEW UNCHANGED</span> — NPS is not a trade vehicle. Short-term market weakness does not change retirement allocation strategy. Equity portion will reflect gap-down; bond portion stable post RBI hold. No action needed.
+            </div>
           </div>
         </div>
-      </div>
 
+      </div><!-- /portfolio-grid -->
     </div>
   </div>
 
-</div><!-- /container -->
+  <!-- ── 8. NEWS FEED ── -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title"><span class="icon">📰</span> News Feed — Last 24–48 Hours</div>
+      <span class="panel-badge badge-blue">VERIFIED SOURCES</span>
+    </div>
+    <div class="panel-body">
+      <div class="news-list">
 
-<!-- ══════════════════════════════════════════════════════════
+        <div class="news-item">
+          <div class="news-dot red"></div>
+          <div class="news-content">
+            <div class="news-headline">Wall Street suffers worst day of year: Nasdaq −4.18%, S&P 500 −2.64% on strong US jobs data; Fed higher-for-longer fears spike CBOE VIX to 21.51 (+39.68%)</div>
+            <div class="news-meta"><span class="news-source">Business Today</span> · 06 Jun 2026 · Trigger: May NFP beat; Broadcom earnings miss; tech/AI rout</div>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="news-dot red"></div>
+          <div class="news-content">
+            <div class="news-headline">GIFT Nifty plunges 356 pts (−1.52%) to 23,091 overnight — sharp gap-down opening of ~275 pts expected for Nifty on Monday June 8</div>
+            <div class="news-meta"><span class="news-source">Business Today</span> · 06 Jun 2026 · GIFT Nifty near 52W low of ₹22,250 · Key support: 23,150</div>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="news-dot amber"></div>
+          <div class="news-content">
+            <div class="news-headline">RBI holds repo rate at 5.25% with neutral stance; Bank Nifty surges to 54,732 intraday high before paring gains on global tech rout</div>
+            <div class="news-meta"><span class="news-source">Univest / Zee Business</span> · 05 Jun 2026 · RBI raises inflation forecast, cuts GDP growth projection for FY27</div>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="news-dot red"></div>
+          <div class="news-content">
+            <div class="news-headline">CENTCOM shoots down 4 Iranian attack drones near Strait of Hormuz; US strikes Iranian radar sites in Goruk and Qeshm Island in retaliation</div>
+            <div class="news-meta"><span class="news-source">CBS News / ABC7 News (AP)</span> · 05–06 Jun 2026 · Iran accuses US of ceasefire violation; talks at deadlock</div>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="news-dot red"></div>
+          <div class="news-content">
+            <div class="news-headline">Israel strikes Hezbollah targets in Beirut suburbs on June 7; Iran warns of consequences as Middle East ceasefire grows increasingly fragile</div>
+            <div class="news-meta"><span class="news-source">ABC News (AP)</span> · 07 Jun 2026 · Hezbollah fired missiles into northern Israel; IDF responded with Dahiyeh strikes</div>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="news-dot amber"></div>
+          <div class="news-content">
+            <div class="news-headline">Brent crude at $95.41/bbl on Jun 5; India pays premium as Hormuz shipping at 5% of pre-war levels — Goodreturns/OPEC demand outlook steady at 1.2 mbpd growth</div>
+            <div class="news-meta"><span class="news-source">Goodreturns</span> · 05 Jun 2026 · INR/USD: ₹94.95 · 10-day Brent high was $97.85 (Jun 3)</div>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="news-dot green"></div>
+          <div class="news-content">
+            <div class="news-headline">BEL FY26 full-year results: Revenue +16% to ₹27,610 Cr, PAT +14% to ₹6,062 Cr; order book stands at ₹73,882 Cr as of April 1, 2026 — strong defence pipeline intact</div>
+            <div class="news-meta"><span class="news-source">Tickertape / Screener</span> · 22 May 2026 · Additional orders of ₹608 Cr secured since May 5</div>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="news-dot amber"></div>
+          <div class="news-content">
+            <div class="news-headline">HDFC AMC discloses cybersecurity incident; anonymous claim of access to IT systems received May 16 — containment measures activated, no material business impact stated</div>
+            <div class="news-meta"><span class="news-source">Axis Direct / Exchange Filing</span> · May–Jun 2026 · Record date for ₹54 dividend: Jun 17, 2026</div>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="news-dot green"></div>
+          <div class="news-content">
+            <div class="news-headline">India May Services PMI hits 6-month high; rupee gained for third consecutive week ending at ₹94.94/$; domestic institutional buying partially offsets FII selling</div>
+            <div class="news-meta"><span class="news-source">Liquide Life / Blog (market analysis)</span> · 06 Jun 2026 · FIIs net sellers ₹3,912 Cr on Jun 3; DIIs partially offsetting</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-wrap -->
+
+<!-- ══════════════════════════════════════════════════════════════════
      9. FOOTER
-     ══════════════════════════════════════════════════════════ -->
-<footer class="footer">
-  <div class="footer-row">
-    <div class="footer-attr">
-      📊 <strong>Tejas Jadhav</strong> · Daily Market Dashboard ·
-      <a href="https://tejasgjadhav.github.io/daily-dashboard" target="_blank">tejasgjadhav.github.io/daily-dashboard</a>
-    </div>
-    <div class="footer-refresh">🔄 Auto-update via GitHub Actions + Claude API</div>
+══════════════════════════════════════════════════════════════════ -->
+<div class="footer">
+  <div class="footer-refresh">Last refresh: 2026-06-08 05:46 IST</div>
+  <div class="footer-timestamp">
+    Dashboard generated: Monday, 08 June 2026 | 05:46:34 IST (00:16:34 UTC)<br />
+    Next NSE/BSE open: 09:15 IST today &nbsp;·&nbsp; Pre-Market Briefing Window
   </div>
-  <div class="footer-row">
-    <div class="footer-attr" style="font-family: var(--mono); font-size:11px;">
-      Last refresh: <strong>2026-06-04 08:30 IST</strong> (Pre-Market Run)
-    </div>
-    <div class="footer-attr">
-      Data sources: NSE · BSE · Kotak Neo · Investing.com · Yahoo Finance · Zerodha Pulse · Zee Business · Upstox · AP · RFE/RL · UK House of Commons Library · Britannica
-    </div>
+  <div class="footer-attr">
+    Auto-update via GitHub Actions + Claude API &nbsp;|&nbsp;
+    Data sources: NSE India · Yahoo Finance · Investing.com · Business Today · Goodreturns · Zee Business · CBS News · ABC News · Wikipedia · Britannica · Kotak Neo &nbsp;|&nbsp;
+    All prices are delayed / last-close — not live. Not investment advice.
   </div>
-  <div class="disc">
-    ⚠️ <strong>DISCLAIMER:</strong> This dashboard is a personal information aggregator for <em>Tejas Jadhav's</em> reference only. All prices are delayed/last-close as of June 3, 2026 (NSE/BSE cash market). GIFT Nifty levels are indicative pre-open signals. Nothing on this page constitutes investment advice, a solicitation to buy/sell, or a SEBI-registered research recommendation. Markets involve risk. Please consult a SEBI-registered investment adviser before making any financial decisions. The author is not responsible for any trading decisions made based on this dashboard.
+  <div class="footer-attr" style="margin-top:4px;">
+    Built for <strong>Tejas Jadhav</strong> · <a href="https://tejasgjadhav.github.io/daily-dashboard" target="_blank">tejasgjadhav.github.io/daily-dashboard</a>
   </div>
-</footer>
+</div>
 
 </body>
 </html>
