@@ -1,7 +1,12 @@
-name: Daily Dashboard Update (Claude API)
+name: Daily Dashboard Update (Claude API + free fallback)
 
 # Fully server-side daily dashboard refresh.
 # No laptop required — Claude API + GitHub Actions + GitHub Pages.
+#
+# If the Claude API call fails or returns a malformed response, the script
+# automatically falls back to free, web-grounded open models (Perplexity
+# Sonar family) served via Puter.com, using the same prompt — see
+# scripts/update_dashboard.py and the README "Fallback" section.
 #
 # Trigger: 23:00 UTC Sun-Thu (= 04:30 IST Mon-Fri).
 # GitHub Actions cron is best-effort and slips ~4 hours during peak UTC hours.
@@ -42,23 +47,36 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
 
-      - name: Sanity check — secret is present
+      - name: Sanity check — credentials are present
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PUTER_TOKEN: ${{ secrets.PUTER_TOKEN }}
         run: |
-          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
-            echo "::error::ANTHROPIC_API_KEY secret is not set in this repo. See README for setup."
+          if [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -z "${PUTER_TOKEN:-}" ]; then
+            echo "::error::Neither ANTHROPIC_API_KEY nor PUTER_TOKEN secret is set. See README for setup."
             exit 1
           fi
-          echo "API key present (length ${#ANTHROPIC_API_KEY})."
+          if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+            echo "::warning::ANTHROPIC_API_KEY not set — will rely entirely on the free fallback models."
+          else
+            echo "Anthropic API key present (length ${#ANTHROPIC_API_KEY})."
+          fi
+          if [ -z "${PUTER_TOKEN:-}" ]; then
+            echo "::warning::PUTER_TOKEN not set — no fallback available if Claude fails."
+          else
+            echo "Puter fallback token present (length ${#PUTER_TOKEN})."
+          fi
 
-      - name: Run Claude API dashboard update
+      - name: Run dashboard update (Claude, falls back to free open models)
         id: update
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_MODEL: 'claude-sonnet-4-6'
           MAX_TOKENS: '32000'
           MAX_WEB_SEARCHES: '15'
+          PUTER_TOKEN: ${{ secrets.PUTER_TOKEN }}
+          FALLBACK_MODELS: 'perplexity/sonar-pro,perplexity/sonar-reasoning-pro,perplexity/sonar'
+          FALLBACK_MAX_TOKENS: '8000'
         run: python scripts/update_dashboard.py
 
       - name: Detect changes
