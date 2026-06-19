@@ -96,7 +96,7 @@ PUTER_API_URL = "https://api.puter.com/puterai/openai/v1/chat/completions"
 DEFAULT_FALLBACK_MODELS = (
     "perplexity/sonar-pro,perplexity/sonar-reasoning-pro,perplexity/sonar"
 )
-DEFAULT_FALLBACK_MAX_TOKENS = 8000
+DEFAULT_FALLBACK_MAX_TOKENS = 16000
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
@@ -231,7 +231,6 @@ def call_puter(model: str, puter_token: str, max_tokens: int, user_message: str)
     Perplexity's Sonar models do real-time web search natively, which is
     what this dashboard needs for fresh market data and news.
     """
-    log(f"Calling Puter.com fallback model '{model}'...")
     payload = {
         "model": model,
         "messages": [
@@ -248,25 +247,44 @@ def call_puter(model: str, puter_token: str, max_tokens: int, user_message: str)
         "max_tokens": max_tokens,
         "temperature": 0.3,
     }
-    resp = httpx.post(
-        PUTER_API_URL,
-        headers={
-            "Authorization": f"Bearer {puter_token}",
-            "Content-Type": "application/json",
-        },
-        json=payload,
-        timeout=httpx.Timeout(300.0, connect=30.0),
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    if "choices" not in data or not data["choices"]:
-        raise RuntimeError(f"Puter API returned no choices: {data.get('error', data)!r}")
 
-    usage = data.get("usage", {})
-    if usage:
-        log(f"Usage: {json.dumps(usage)}")
+    # Puter's free shared pool occasionally returns 402 "insufficient_funds" for
+    # a specific model even though the account/token is fine — a quick retry
+    # often lands on a moment where that model's pool has headroom again.
+    MAX_RETRIES = 2
+    last_error: Exception | None = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        log(f"Calling Puter.com fallback model '{model}' (attempt {attempt}/{MAX_RETRIES})...")
+        try:
+            resp = httpx.post(
+                PUTER_API_URL,
+                headers={
+                    "Authorization": f"Bearer {puter_token}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=httpx.Timeout(300.0, connect=30.0),
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            if "choices" not in data or not data["choices"]:
+                raise RuntimeError(f"Puter API returned no choices: {data.get('error', data)!r}")
 
-    return data["choices"][0]["message"]["content"]
+            usage = data.get("usage", {})
+            if usage:
+                log(f"Usage: {json.dumps(usage)}")
+            finish_reason = data["choices"][0].get("finish_reason")
+            if finish_reason and finish_reason not in ("stop", "end_turn"):
+                log(f"  [finish_reason={finish_reason!r} — response may be truncated]")
+
+            return data["choices"][0]["message"]["content"]
+        except Exception as e:  # noqa: BLE001 — retried below, re-raised after last attempt
+            last_error = e
+            if attempt < MAX_RETRIES:
+                log(f"  Puter call failed ({e}); retrying in 8s...")
+                time.sleep(8)
+
+    raise last_error  # type: ignore[misc]
 
 
 # ---------- Main ----------
@@ -360,7 +378,9 @@ def main() -> int:
         new_html = extract_html_block(full_text)
         if new_html is None:
             sys.stderr.write(f"ERROR: provider '{name}' — could not extract HTML block from response\n")
-            sys.stderr.write(f"First 1000 chars of response:\n{full_text[:1000]}\n")
+            sys.stderr.write(f"Response length: {len(full_text)} chars\n")
+            sys.stderr.write(f"First 500 chars of response:\n{full_text[:500]}\n")
+            sys.stderr.write(f"Last 500 chars of response:\n{full_text[-500:]}\n")
             continue
 
         ok, reason = looks_like_dashboard_html(new_html)
