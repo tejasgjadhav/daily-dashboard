@@ -75,7 +75,7 @@ jobs:
           MAX_TOKENS: '32000'
           MAX_WEB_SEARCHES: '15'
           PUTER_TOKEN: ${{ secrets.PUTER_TOKEN }}
-          FALLBACK_MODELS: 'perplexity/sonar-pro,perplexity/sonar-reasoning-pro,perplexity/sonar'
+          FALLBACK_MODELS: 'perplexity/sonar-pro,perplexity/sonar-reasoning-pro,perplexity/sonar,gpt-4o-mini'
           FALLBACK_MAX_TOKENS: '16000'
         run: python scripts/update_dashboard.py
 

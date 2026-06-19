@@ -184,20 +184,29 @@ Perplexity/OpenAI key required, just a one-time free Puter token):
 ```
 Claude API (primary)
         ↓ fails / bad response
-perplexity/sonar-pro          (Puter, free)
+perplexity/sonar-pro          (Puter, free, web search)
         ↓ fails / bad response
-perplexity/sonar-reasoning-pro (Puter, free)
+perplexity/sonar-reasoning-pro (Puter, free, web search)
         ↓ fails / bad response
-perplexity/sonar              (Puter, free)
+perplexity/sonar              (Puter, free, web search)
+        ↓ fails / bad response
+gpt-4o-mini                   (Puter, free, no web search — last resort)
         ↓ all failed
 exit 5 — dashboard left untouched, logs explain why
 ```
 
-Perplexity's Sonar models were chosen for the fallback because they do
-real-time web search natively (same need as Claude's `web_search` tool) —
-so the fallback still produces genuinely fresh market commentary, FII/DII
-flows, news, and portfolio impact analysis instead of a hallucinated
-placeholder.
+Perplexity's Sonar models were chosen for the first three fallback steps
+because they do real-time web search natively (same need as Claude's
+`web_search` tool) — so the fallback still produces genuinely fresh market
+commentary, FII/DII flows, news, and portfolio impact analysis instead of a
+hallucinated placeholder.
+
+`gpt-4o-mini` sits at the very end of the chain as a last resort for the
+rare day when Claude *and* every Sonar model are unavailable (e.g. Puter's
+free Sonar quota is drained). It has no live web search, so per
+`scripts/prompt_template.md`'s rules it marks any data it can't verify as
+"pending" instead of guessing — the dashboard still refreshes daily, just
+with thinner content on that one day.
 
 Configuration (all via env vars / GitHub Actions secrets):
 
@@ -205,8 +214,8 @@ Configuration (all via env vars / GitHub Actions secrets):
 |---|---|---|---|
 | `ANTHROPIC_API_KEY` | one of these two | — | primary Claude provider |
 | `PUTER_TOKEN` | one of these two | — | enables the free fallback chain |
-| `FALLBACK_MODELS` | no | `perplexity/sonar-pro,perplexity/sonar-reasoning-pro,perplexity/sonar` | fallback order |
-| `FALLBACK_MAX_TOKENS` | no | `8000` | output budget per fallback call |
+| `FALLBACK_MODELS` | no | `perplexity/sonar-pro,perplexity/sonar-reasoning-pro,perplexity/sonar,gpt-4o-mini` | fallback order |
+| `FALLBACK_MAX_TOKENS` | no | `16000` | output budget per fallback call |
 
 If `ANTHROPIC_API_KEY` is missing entirely, the script skips straight to
 the fallback chain — useful if the Anthropic key is ever revoked or hits a

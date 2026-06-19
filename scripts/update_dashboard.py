@@ -12,7 +12,11 @@ returns something that doesn't look like a valid dashboard, the script
 falls back to web-grounded open models served for free via Puter.com's
 OpenAI-compatible API (Perplexity Sonar family) using the exact same
 prompt, so the dashboard still gets its market commentary/news/portfolio
-analysis for the day instead of going stale.
+analysis for the day instead of going stale. If the Sonar models are also
+unavailable (e.g. their free shared quota is drained), the chain finally
+falls back to gpt-4o-mini, which has no live web search — per
+prompt_template.md's rules it will mark data it cannot verify as
+"pending" rather than invent it, so the dashboard still refreshes daily.
 
 No browser, no laptop, no Cowork — purely server-to-server.
 
@@ -26,8 +30,8 @@ Environment:
   FALLBACK_MODELS    (optional)  — comma-separated Puter model ids, defaults
                                     to "perplexity/sonar-pro,
                                     perplexity/sonar-reasoning-pro,
-                                    perplexity/sonar"
-  FALLBACK_MAX_TOKENS (optional) — defaults to 8000
+                                    perplexity/sonar,gpt-4o-mini"
+  FALLBACK_MAX_TOKENS (optional) — defaults to 16000
 
   * at least one of ANTHROPIC_API_KEY / PUTER_TOKEN must be set.
 
@@ -94,7 +98,7 @@ DEFAULT_MAX_SEARCHES = 12
 
 PUTER_API_URL = "https://api.puter.com/puterai/openai/v1/chat/completions"
 DEFAULT_FALLBACK_MODELS = (
-    "perplexity/sonar-pro,perplexity/sonar-reasoning-pro,perplexity/sonar"
+    "perplexity/sonar-pro,perplexity/sonar-reasoning-pro,perplexity/sonar,gpt-4o-mini"
 )
 DEFAULT_FALLBACK_MAX_TOKENS = 16000
 
