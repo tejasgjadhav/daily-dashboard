@@ -171,6 +171,58 @@ Email Confirmation Sent
 
 ---
 
+## 🛟 Fallback: when the Claude API has a bad day
+
+`scripts/update_dashboard.py` calls the Claude API first. If that call
+errors out (rate limit, outage, auth failure) after retries, or comes back
+malformed (no HTML block, missing sections, suspiciously short), the script
+does **not** just give up and leave the dashboard stale — it automatically
+retries the exact same prompt against free, web-grounded open models served
+through [Puter.com](https://puter.com)'s OpenAI-compatible API (no
+Perplexity/OpenAI key required, just a one-time free Puter token):
+
+```
+Claude API (primary)
+        ↓ fails / bad response
+perplexity/sonar-pro          (Puter, free, web search)
+        ↓ fails / bad response
+perplexity/sonar-reasoning-pro (Puter, free, web search)
+        ↓ fails / bad response
+perplexity/sonar              (Puter, free, web search)
+        ↓ fails / bad response
+gpt-4o-mini                   (Puter, free, no web search — last resort)
+        ↓ all failed
+exit 5 — dashboard left untouched, logs explain why
+```
+
+Perplexity's Sonar models were chosen for the first three fallback steps
+because they do real-time web search natively (same need as Claude's
+`web_search` tool) — so the fallback still produces genuinely fresh market
+commentary, FII/DII flows, news, and portfolio impact analysis instead of a
+hallucinated placeholder.
+
+`gpt-4o-mini` sits at the very end of the chain as a last resort for the
+rare day when Claude *and* every Sonar model are unavailable (e.g. Puter's
+free Sonar quota is drained). It has no live web search, so per
+`scripts/prompt_template.md`'s rules it marks any data it can't verify as
+"pending" instead of guessing — the dashboard still refreshes daily, just
+with thinner content on that one day.
+
+Configuration (all via env vars / GitHub Actions secrets):
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `ANTHROPIC_API_KEY` | one of these two | — | primary Claude provider |
+| `PUTER_TOKEN` | one of these two | — | enables the free fallback chain |
+| `FALLBACK_MODELS` | no | `perplexity/sonar-pro,perplexity/sonar-reasoning-pro,perplexity/sonar,gpt-4o-mini` | fallback order |
+| `FALLBACK_MAX_TOKENS` | no | `16000` | output budget per fallback call |
+
+If `ANTHROPIC_API_KEY` is missing entirely, the script skips straight to
+the fallback chain — useful if the Anthropic key is ever revoked or hits a
+billing issue but the dashboard still needs to update.
+
+---
+
 ## 📁 File Structure
 
 ```
@@ -327,7 +379,9 @@ Curated news headlines from:
 
 ### Prerequisites
 - GitHub account with repository access
-- Claude scheduled task capability
+- `ANTHROPIC_API_KEY` repo secret (primary generator) — and/or
+- `PUTER_TOKEN` repo secret (enables the free fallback chain — see
+  "Fallback" section above; get one free at https://puter.com)
 - GitHub Pages enabled on repository
 
 ### GitHub Pages Setup
